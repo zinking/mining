@@ -14,11 +14,12 @@ class FeedParserSpec extends FunSuite
 					 with ShouldMatchers {
 	
   test("Parser should be able to parse letitcrash RSS") {
-    val feed = RSSFeed("http://letitcrash.com/rss")
+    val url = "http://letitcrash.com/rss"
+    val feed = RSSFeed( url )
 
     val rssItemSize = feed.rssItems.size
     //println(s"Loaded $rssItemSize items from $feed")
-    //feed.rssItems foreach println
+    println( feed.rssItems.get(0) )
 
     rssItemSize should (be > 10)
   }

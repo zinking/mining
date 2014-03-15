@@ -2,6 +2,7 @@ package mining.parser
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import scalaj.http.Http
+import scalaj.http.HttpOptions
 
 
 
@@ -21,8 +22,12 @@ class Spider {
         )
     
    // val request = Http(url).headers(browsing_headers)
+        
+    //TODO: timeout, connection exception handling
     val (retcode, response_headersMap, resultString) = 
-      Http(url).headers(browsing_headers).asHeadersAndParse(Http.readString)
+      Http(url).option(HttpOptions.connTimeout(1000))
+      		   .option(HttpOptions.readTimeout(5000)).asHeadersAndParse(Http.readString)
+      //Http(url).headers(browsing_headers).asHeadersAndParse(Http.readString)
     
     if( retcode == 304 ) return ""
     
