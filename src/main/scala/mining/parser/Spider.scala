@@ -1,10 +1,7 @@
 package mining.parser
-import java.text.SimpleDateFormat;
-import java.util.Date;
+
 import scalaj.http.Http
 import scalaj.http.HttpOptions
-
-
 
 class Spider {
   

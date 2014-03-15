@@ -7,31 +7,24 @@ import org.scalatest.matchers.ShouldMatchers
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import scalaj.http.Http
-import mining.parser.Spider
 
 @RunWith(classOf[JUnitRunner])
 class FeedParserSpec extends FunSuite 
 					 with ShouldMatchers {
-	
+  
   test("Parser should be able to parse letitcrash RSS") {
     val url = "http://letitcrash.com/rss"
     val feed = RSSFeed( url )
 
     val rssItemSize = feed.rssItems.size
-    //println(s"Loaded $rssItemSize items from $feed")
-    println( feed.rssItems.get(0) )
+    println(feed.rssItems.head)
 
     rssItemSize should (be > 10)
   }
   
   test("Parse coolshell RSS should work well for Chinese") {
     val feed = RSSFeed("http://coolshell.cn/feed")
-    
-    val rssItemSize = feed.rssItems.size
-    //println(s"Loaded $rssItemSize items from $feed")
-    //feed.rssItems foreach println
-
-    rssItemSize should (be > 10)
+    feed.rssItems.size should (be > 10)
   }
   
   test("if the rss feed haven't been changed then no need to parse again") {
