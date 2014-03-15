@@ -16,7 +16,12 @@ class RSSFeed(val url: String) {
 	
 	lazy val rssItems: Iterable[RSSItem] = itemNode.map(buildRSSItem(_))
 	
-	protected[this] def buildRSSChannel(node: Node) = RSSChannel((node \ "title").text, (node \ "description").text, (node \ "link").text)
+	protected[this] def buildRSSChannel(node: Node) = 
+	  RSSChannel(
+	      (node \ "title").text, 
+	      (node \ "description").text, 
+	      (node \ "link").text
+	  )
 
 	protected[this] def buildRSSItem(node: Node) = 
 	  RSSItem(this, 
@@ -36,7 +41,7 @@ class RSSFeed(val url: String) {
 }
 
 object RSSFeed {
-  def apply(url: String) = new RSSFeed(url)
+  def apply(url: String, md:Map[String,String] = Map( ) ) = new RSSFeed(url)
 }
 
 case class RSSChannel(val title: String, val description: String, val link: String)
