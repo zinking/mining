@@ -10,20 +10,18 @@ class RSSFeed(val url: String) {
   val metadata = Map.empty[String, String]
 
   val root = {
-	val content = new Spider().getRssFeed(url, metadata) //implicit dependency on metadata
-	val dom = new SAXBuilder().build(
-	  new StringReader(content)
-	)
-	new SyndFeedInput().build(dom);
+    val content = new Spider().getRssFeed(url, metadata) //implicit dependency on metadata
+    val dom = new SAXBuilder().build(
+      new StringReader(content)
+    )
+    new SyndFeedInput().build(dom);
   }
-	
+   
   lazy val rssItems: Iterable[SyndEntry] = root.getEntries().asScala.map(_.asInstanceOf[SyndEntry])
-	
+   
   override def toString = s"Feed($url)"
 }
 
 object RSSFeed {
   def apply(url: String) = new RSSFeed(url)
 }
-
-case class RSSChannel(val title: String, val description: String, val link: String)
