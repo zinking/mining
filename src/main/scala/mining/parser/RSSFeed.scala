@@ -8,13 +8,19 @@ import scala.collection.JavaConverters._
 import mining.io.FeedDescriptor
 import scala.collection.mutable
 import scala.math.Ordering
+import org.jdom.input.JDOMParseException
+import org.slf4j.LoggerFactory
+import com.sun.syndication.feed.synd.SyndFeed
 
 class RSSFeed(val feedDescriptor: FeedDescriptor) {
-  import SyndEntryOrdering._
+  //import SyndEntryOrdering._
+  
+  private val logger = LoggerFactory.getLogger(classOf[RSSFeed])
 
   val url = feedDescriptor.feedUrl
   
-  val rssItems = mutable.SortedSet.empty[SyndEntry]
+  //val rssItems = mutable.SortedSet.empty[SyndEntry]
+  val rssItems = mutable.ListBuffer.empty[SyndEntry]
 
   /** Sync latest feeds */
   def syncFeed(): Unit = { 
@@ -32,13 +38,29 @@ class RSSFeed(val feedDescriptor: FeedDescriptor) {
         rssItems += synd
       }
     }
+    
+    if( newEntries.length > 0 ) {//update fid
+      feedDescriptor.lastEntryUrl = newEntries(0).getLink()
+    }
   }
   
   def addFeedEntries(entries: Iterable[SyndEntry]) = rssItems ++= entries
   
-  protected[parser] def syndFeedFromXML(feedXML: String) = {
+  protected[parser] def syndFeedFromXML(feedXML: String):SyndFeed = {
+    try{
+	    val dom = new SAXBuilder().build(
+	      new StringReader(feedXML)
+	    )
+	    return new SyndFeedInput().build(dom)
+    }
+    catch{
+      //TODO:DOM exception for cynergysystems caused by the rss url has changed
+      //TODO: SOME DOMAIN CANNOT BE SEEN WITHIN CHINA http://blogs.nitobi.com, these should be caputred by spider
+      case ex: JDOMParseException => logger.error(s"Parsing Exception with $url SKIPPING")
+    }
+    
     val dom = new SAXBuilder().build(
-      new StringReader(feedXML)
+      new StringReader(Spider.EMPTY_RSS_FEED)
     )
     new SyndFeedInput().build(dom)
   }
@@ -50,6 +72,8 @@ object RSSFeed {
   def apply(fd: FeedDescriptor) = new RSSFeed(fd)
 }
 
-object SyndEntryOrdering {
-  implicit def syndEntryOrdering: Ordering[SyndEntry] = Ordering.fromLessThan((x, y) => x.getPublishedDate().compareTo(y.getPublishedDate()) > 0)
-}
+//TODO: disable for the moment as not supported by all
+//if we maintain the order we retrieved, we should be fine.
+//object SyndEntryOrdering {
+//  implicit def syndEntryOrdering: Ordering[SyndEntry] = Ordering.fromLessThan((x, y) => x.getPublishedDate().compareTo(y.getPublishedDate()) > 0)
+//}

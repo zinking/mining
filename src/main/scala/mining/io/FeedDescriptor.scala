@@ -1,15 +1,18 @@
 package mining.io
 
+import java.util.Date
+import mining.parser.Spider
+
 class FeedDescriptor(val feedUrl: String) extends Serializable {
   import FeedDescriptor._
 
-  //simply remove invalid characters now, enhance it to be a GUID
   val feedUID = urlToUid(feedUrl) 
 
   val filePath = feedLocation + feedUID + ".ser" 
   
   var lastEtag = "" 
-  var lastParseTimestamp = ""
+    
+  var lastParseTimestamp = Spider.TIME_FORMAT.format(new Date(0) )
   var lastEntryUrl = ""
   
   override def toString = s"FeedDescriptor[$feedUID]"
