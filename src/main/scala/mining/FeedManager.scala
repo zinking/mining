@@ -12,25 +12,25 @@ import scala.xml._
 
 class FeedManager {
   
-  def CreateOrUpdateFeed( url: String ){
-    val fd = LoadFeedDescriptor( url )
+  def createOrUpdateFeed(url: String){
+    val fd = loadFeedDescriptor( url )
     val feed0 = SerFeedReader(fd).read_feed();
-    feed0.sync_feed(fd)
+    feed0.syncFeed(fd)
     SerFeedWriter(feed0).write();
-    StoreFeedDescriptor(fd)
+    storeFeedDescriptor(fd)
   }
   
-  def CreateOrUpdateFeedOPML( root:Elem ){
+  def createOrUpdateFeedOPML(root:Elem){
     
   }
   
-  def StoreFeedDescriptor( fd:FeedDescriptor ){//serialize
+  def storeFeedDescriptor(fd:FeedDescriptor){//serialize
     //TODO:
   }
   
-  def LoadFeedDescriptor( url:String ):FeedDescriptor={//deserialize stub
+  def loadFeedDescriptor(url:String):FeedDescriptor={//deserialize stub
     //TODO:
-    return FeedDescriptor( url )
+    return FeedDescriptor(url)
   }
 
 }

@@ -8,9 +8,9 @@ class FeedDescriptor(val feedUrl: String) {
 
   val filePath = feedLocation + feedUID + ".ser" 
   
-  var last_etag = "" 
-  var lastparse_timestamp = ""
-  var last_entry_url = ""
+  var lastEtag = "" 
+  var lastParseTimestamp = ""
+  var lastEntryUrl = ""
   
   override def toString = s"FeedDescriptor[$feedUID]"
 }

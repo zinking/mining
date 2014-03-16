@@ -6,48 +6,50 @@ import com.sun.syndication.io.SyndFeedInput
 import com.sun.syndication.feed.synd.SyndEntry
 import scala.collection.JavaConverters._
 import mining.io.FeedDescriptor
+import scala.collection.mutable
+import scala.math.Ordering
 
 class RSSFeed(val fd: FeedDescriptor) {
-  val url = fd.feedUrl
+  import SyndEntryOrdering._
 
-  var root = {
-    //val content = new Spider().getRssFeed(url, fd) //implicit dependency on metadata
-    val dom = new SAXBuilder().build(
-      new StringReader(Spider.empty_rssfeed)
-    )
-    new SyndFeedInput().build(dom)
-  }
+  val url = fd.feedUrl
   
-  def sync_feed( fd:FeedDescriptor ){//sync latest feed 
-    
+  val rssItems = mutable.SortedSet.empty[SyndEntry]
+
+  /** Sync latest feeds */
+  def syncFeed(fd:FeedDescriptor){ 
     val content = new Spider().getRssFeed(url, fd) //implicit dependency on metadata
-    val dom = new SAXBuilder().build(
-      new StringReader(content)
-    )
-    val fd1 = new SyndFeedInput().build(dom)
+    val newSyndFeed = syndFeedFromXML(content)
     
-    val lastupdate_til = fd.last_entry_url
-    val old_entries = root.getEntries().asScala.map(_.asInstanceOf[SyndEntry])
-    val new_entries = fd1.getEntries().asScala.map(_.asInstanceOf[SyndEntry])
+    val lastUpdateUrl = fd.lastEntryUrl
+    val newEntries = newSyndFeed.getEntries().asScala.map(_.asInstanceOf[SyndEntry])
     
-    root = fd1 //update feed
-    for( synd <- new_entries ){
-      //assumptions should be made that the entries are sorted
-      
-      if ( synd.getLink() == lastupdate_til ){
+    for(synd <- newEntries){
+      if (synd.getLink() == lastUpdateUrl){
         return
       }
       else{
-        old_entries += synd
+        rssItems += synd
       }
     }
   }
-   
-  lazy val rssItems: Iterable[SyndEntry] = root.getEntries().asScala.map(_.asInstanceOf[SyndEntry])
+  
+  def addFeedEntries(entries: Iterable[SyndEntry]) = rssItems ++= entries
+  
+  protected[parser] def syndFeedFromXML(feedXML: String) = {
+    val dom = new SAXBuilder().build(
+      new StringReader(feedXML)
+    )
+    new SyndFeedInput().build(dom)
+  }
    
   override def toString = s"Feed($url)"
 }
 
 object RSSFeed {
   def apply(fd: FeedDescriptor) = new RSSFeed(fd)
+}
+
+object SyndEntryOrdering {
+  implicit def syndEntryOrdering: Ordering[SyndEntry] = Ordering.fromLessThan((x, y) => x.getPublishedDate().compareTo(y.getPublishedDate()) < 0)
 }

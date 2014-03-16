@@ -25,8 +25,8 @@ class SerFeedSpec extends FunSuite
 
   test("Ser feed write should be able to write rss items to file system") {
     val fd1 = FeedDescriptor("http://coolshell.cn/feed")
-    val feed = RSSFeed(  fd1 ) 
-    feed.sync_feed( fd1)
+    val feed = RSSFeed(fd1) 
+    feed.syncFeed(fd1)
     val serWriter = SerFeedWriter(feed)
     
     //do the clean up first
@@ -42,9 +42,8 @@ class SerFeedSpec extends FunSuite
   test("Ser feed reader should be able to read rss items according to feed descriptor") {
     val fd = FeedDescriptor("http://coolshell.cn/feed") 
     val serReader = SerFeedReader(fd)
+    val rssFeed = serReader.read()
     
-    val map = serReader.read()
-    
-    map.get(fd).get.size should (be > 10)
+    rssFeed.rssItems.size should (be > 10)
   }
 }

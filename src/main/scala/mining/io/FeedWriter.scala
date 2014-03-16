@@ -20,13 +20,9 @@ class SerFeedWriter(val rssFeed: RSSFeed) extends FeedWriter {
   val feedDescriptor = FeedDescriptor(rssFeed.url)
 
   override def write() = {
-    //Ser write cannot append, have to read and rewrite
-    val serReader = SerFeedReader(feedDescriptor) 
-	val feedsMap = serReader.read()
-	val allFeeds = feedsMap.get(feedDescriptor).get ++ rssFeed.rssItems
-
     val objOS = new ObjectOutputStream(new FileOutputStream(feedDescriptor.filePath))
     try {
+      val allFeeds = rssFeed.rssItems
       objOS.writeInt(allFeeds.size)
       allFeeds.foreach(objOS.writeObject(_))
     } 

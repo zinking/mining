@@ -17,7 +17,7 @@ class FeedParserSpec extends FunSuite
     val url = "http://letitcrash.com/rss"
     val fd  = FeedDescriptor(url)
     val feed = RSSFeed( fd )
-    feed.sync_feed(fd)
+    feed.syncFeed(fd)
     val rssItemSize = feed.rssItems.size
     rssItemSize should (be > 10)
   }
@@ -26,7 +26,7 @@ class FeedParserSpec extends FunSuite
     val url = "http://great-way1.appspot.com/"
     val fd  = FeedDescriptor(url)
     val feed = RSSFeed( fd )
-    feed.sync_feed(fd)
+    feed.syncFeed(fd)
 
     val rssItemSize = feed.rssItems.size  
 
@@ -37,7 +37,7 @@ class FeedParserSpec extends FunSuite
     val url = "http://coolshell.cn/feed"
     val fd  = FeedDescriptor(url)
     val feed = RSSFeed( fd )
-    feed.sync_feed(fd)
+    feed.syncFeed(fd)
     feed.rssItems.size should (be > 10)
   }
   
@@ -52,10 +52,10 @@ class FeedParserSpec extends FunSuite
        
      val s1 = new Spider()
      val md = FeedDescriptor(url)
-     md.last_etag = last_modified
-     md.last_etag = last_etag
+     md.lastEtag = last_modified
+     md.lastEtag = last_etag
      val content = s1.getRssFeed(url, md)
      
-     content should equal ( Spider.empty_rssfeed )
+     content should equal (Spider.EMPTY_RSS_FEED)
   }
 }

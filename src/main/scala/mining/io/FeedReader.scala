@@ -11,14 +11,15 @@ import mining.parser.RSSFeed
 trait FeedReader {
   def feedDescriptor: FeedDescriptor
   
-  def read(): Map[FeedDescriptor, Iterable[SyndEntry]] 
+  def read(): RSSFeed 
 }
 
 class SerFeedReader(val feedDescriptor: FeedDescriptor) extends FeedReader {
+  import mining.parser.SyndEntryOrdering._
 
   private val logger = LoggerFactory.getLogger(classOf[SerFeedReader])
 
-  override def read(): Map[FeedDescriptor, Iterable[SyndEntry]] = {
+  override def read(): RSSFeed = {
     val entries = mutable.Buffer.empty[SyndEntry]
     val feedFile = new File(feedDescriptor.filePath)
     if (feedFile.exists()) {
@@ -39,8 +40,10 @@ class SerFeedReader(val feedDescriptor: FeedDescriptor) extends FeedReader {
         objIS.close()
       }
     }
-    //TODO: why put in map though, the constructor takes fd anyways
-    Map(feedDescriptor -> entries) 
+    
+    val feed = RSSFeed(feedDescriptor)
+    feed.addFeedEntries(entries)
+    feed
   }
   
   def read_feed():RSSFeed={//stub to be implemented
