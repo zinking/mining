@@ -41,6 +41,15 @@ class FeedParserSpec extends FunSuite
     feed.rssItems.size should (be > 10)
   }
   
+  test("RSS SyndEntry should be sorted as reversed time order") {
+    val url = "http://coolshell.cn/feed"
+    val fd  = FeedDescriptor(url)
+    val feed = RSSFeed( fd )
+    feed.syncFeed(fd)
+    
+    feed.rssItems.head.getPublishedDate() should (be > feed.rssItems.tail.head.getPublishedDate())
+  }
+  
   test("if the rss feed haven't been changed then no need to parse again") {
      val url = "http://coolshell.cn/feed"
        //note some site might don't have standard http server so might don't support this
@@ -58,4 +67,6 @@ class FeedParserSpec extends FunSuite
      
      content should equal (Spider.EMPTY_RSS_FEED)
   }
+  
+
 }

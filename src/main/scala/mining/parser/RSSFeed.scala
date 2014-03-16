@@ -55,5 +55,5 @@ object RSSFeed {
 }
 
 object SyndEntryOrdering {
-  implicit def syndEntryOrdering: Ordering[SyndEntry] = Ordering.fromLessThan((x, y) => x.getPublishedDate().compareTo(y.getPublishedDate()) < 0)
+  implicit def syndEntryOrdering: Ordering[SyndEntry] = Ordering.fromLessThan((x, y) => x.getPublishedDate().compareTo(y.getPublishedDate()) > 0)
 }
