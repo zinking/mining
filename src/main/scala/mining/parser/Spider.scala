@@ -25,13 +25,16 @@ class Spider {
         
     //TODO: timeout, connection exception handling
     val (retcode, response_headersMap, resultString) = 
-      Http(url).option(HttpOptions.connTimeout(1000))
+      Http(url).option(HttpOptions.connTimeout(2500))
       		   .option(HttpOptions.readTimeout(5000)).asHeadersAndParse(Http.readString)
       //Http(url).headers(browsing_headers).asHeadersAndParse(Http.readString)
     
     if( retcode == 304 ) return ""
+    if( retcode != 200 ) return ""
     
     //not sure about last-modified
+    //like test case1 (last-modified reponse header:,List(Tue, 09 Jul 2013 02:33:23 GMT))
+    //this could be used as fast skipping TODO:
     response_headersMap.get("Last-Modified") match{
       case Some( value ) => {
         println( "last-modified reponse header:",value )

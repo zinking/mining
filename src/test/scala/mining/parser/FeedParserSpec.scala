@@ -19,9 +19,20 @@ class FeedParserSpec extends FunSuite
 
     val rssItemSize = feed.rssItems.size
     //println(s"Loaded $rssItemSize items from $feed")
-    println( feed.rssItems.get(0) )
+    //println( feed.rssItems.get(0) )
 
     rssItemSize should (be > 10)
+  }
+  
+  test("Parser return 0 if nothing returned or timeout") {
+    val url = "http://great-way1.appspot.com/"
+    val feed = RSSFeed( url )
+
+    val rssItemSize = feed.rssItems.size
+    //println(s"Loaded $rssItemSize items from $feed")
+    
+
+    rssItemSize should equal (0)
   }
   
   test("Parse coolshell RSS should work well for Chinese") {
