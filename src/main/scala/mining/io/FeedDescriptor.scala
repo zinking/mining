@@ -1,5 +1,8 @@
 package mining.io
 
+import java.util.Date
+import mining.parser.Spider
+
 class FeedDescriptor(val feedUrl: String) {
   import FeedDescriptor._
 
@@ -9,7 +12,8 @@ class FeedDescriptor(val feedUrl: String) {
   val filePath = feedLocation + feedUID + ".ser" 
   
   var lastEtag = "" 
-  var lastParseTimestamp = ""
+    
+  var lastParseTimestamp = Spider.TIME_FORMAT.format(new Date() )
   var lastEntryUrl = ""
   
   override def toString = s"FeedDescriptor[$feedUID]"

@@ -1,3 +1,4 @@
+package mining
 
 import java.nio.file.FileSystems
 import java.io.File
@@ -21,7 +22,11 @@ class FeedManager {
   }
   
   def createOrUpdateFeedOPML(root:Elem){
-    
+    val rssOutNodes = root \\ "outline" filter{node => (node \ "@type").text == "rss"}
+    for(  rssOutNode <- rssOutNodes ){
+      val url = ( rssOutNode \ "@xmlUrl" ).text 
+      createOrUpdateFeed( url )
+    }
   }
   
   def storeFeedDescriptor(fd:FeedDescriptor){//serialize

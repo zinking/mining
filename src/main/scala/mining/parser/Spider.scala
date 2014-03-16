@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory
 import mining.io.FeedDescriptor
 import java.text.SimpleDateFormat
 import java.util.Locale
+import java.util.Date
 
 object Spider {
   val EMPTY_RSS_FEED = """
@@ -18,6 +19,7 @@ object Spider {
 	</channel>
 	</rss>
     """
+  val TIME_FORMAT = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH)
 } 
 
 class Spider {
@@ -42,6 +44,8 @@ class Spider {
 	      		   .option(HttpOptions.readTimeout(5000))
 	      		   .asHeadersAndParse(Http.readString)
 	    
+	    md.lastParseTimestamp = TIME_FORMAT.format( new Date() )
+	      		   
 	    if( retcode == 304 ) return EMPTY_RSS_FEED
 	    if( retcode != 200 ) return EMPTY_RSS_FEED
 	    
@@ -52,9 +56,8 @@ class Spider {
 	    responseHeadersMap.get("Last-Modified") match{
 	      case Some( value ) => {
 	         val latest_ts = value(0)
-	         val df = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH)
-	         val t1 = df.parse(latest_ts)
-	         val t0 = df.parse(md.lastParseTimestamp)
+	         val t1 = TIME_FORMAT.parse(latest_ts)
+	         val t0 = TIME_FORMAT.parse(md.lastParseTimestamp)
 	         if( t1.compareTo(t0) < 0  ){
 	           logger.info(s"Spider parsing $url skip as timestamp $t1 still old ")
 	           return EMPTY_RSS_FEED 
@@ -66,6 +69,7 @@ class Spider {
 	    //if ETag [some hash like c7f731d5d3dce2e82282450c4fcae4d6 ] didn't change, then content didn't change
 	    responseHeadersMap.get("ETag") match{
 	      case Some( value ) => {
+	        md.lastEtag = value(0) //update etag
 	        if ( value(0) == lastEtag ) {
 	          logger.info(s"Spider parsing $url skip as ETag[$lastEtag] didn't change ")
 	          return EMPTY_RSS_FEED 

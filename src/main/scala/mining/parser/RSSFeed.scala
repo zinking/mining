@@ -32,6 +32,10 @@ class RSSFeed(val fd: FeedDescriptor) {
         rssItems += synd
       }
     }
+    
+    if( newEntries.length > 0 ) {//update fid
+      fd.lastEntryUrl = newEntries(0).getLink()
+    }
   }
   
   def addFeedEntries(entries: Iterable[SyndEntry]) = rssItems ++= entries
