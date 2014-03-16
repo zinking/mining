@@ -6,6 +6,7 @@ import java.io.ObjectInputStream
 import scala.collection.mutable
 import org.slf4j.LoggerFactory
 import java.io.File
+import mining.parser.RSSFeed
 
 trait FeedReader {
   def feedDescriptor: FeedDescriptor
@@ -42,7 +43,9 @@ class SerFeedReader(val feedDescriptor: FeedDescriptor) extends FeedReader {
     Map(feedDescriptor -> entries) 
   }
   
-  
+  def read_feed():RSSFeed={//stub to be implemented
+    RSSFeed(feedDescriptor)
+  }
 }
 
 object SerFeedReader {

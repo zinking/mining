@@ -15,15 +15,18 @@ class FeedParserSpec extends FunSuite
   
   test("Parser should be able to parse letitcrash RSS") {
     val url = "http://letitcrash.com/rss"
-    val feed = RSSFeed( FeedDescriptor(url) )
-
+    val fd  = FeedDescriptor(url)
+    val feed = RSSFeed( fd )
+    feed.sync_feed(fd)
     val rssItemSize = feed.rssItems.size
     rssItemSize should (be > 10)
   }
   
   test("Parser return 0 if nothing returned or timeout") {
     val url = "http://great-way1.appspot.com/"
-    val feed = RSSFeed( FeedDescriptor(url) )
+    val fd  = FeedDescriptor(url)
+    val feed = RSSFeed( fd )
+    feed.sync_feed(fd)
 
     val rssItemSize = feed.rssItems.size  
 
@@ -31,7 +34,10 @@ class FeedParserSpec extends FunSuite
   }
   
   test("Parse coolshell RSS should work well for Chinese") {
-    val feed = RSSFeed( FeedDescriptor("http://coolshell.cn/feed") )
+    val url = "http://coolshell.cn/feed"
+    val fd  = FeedDescriptor(url)
+    val feed = RSSFeed( fd )
+    feed.sync_feed(fd)
     feed.rssItems.size should (be > 10)
   }
   

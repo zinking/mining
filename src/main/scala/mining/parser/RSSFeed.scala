@@ -10,18 +10,28 @@ import mining.io.FeedDescriptor
 class RSSFeed(val fd: FeedDescriptor) {
   val url = fd.feedUrl
 
-  val root = {
-    val content = new Spider().getRssFeed(url, fd) //implicit dependency on metadata
+  var root = {
+    //val content = new Spider().getRssFeed(url, fd) //implicit dependency on metadata
     val dom = new SAXBuilder().build(
-      new StringReader(content)
+      new StringReader(Spider.empty_rssfeed)
     )
     new SyndFeedInput().build(dom)
   }
   
-  def update_feed( fd1:RSSFeed, fd:FeedDescriptor ){
+  def sync_feed( fd:FeedDescriptor ){//sync latest feed 
+    
+    val content = new Spider().getRssFeed(url, fd) //implicit dependency on metadata
+    val dom = new SAXBuilder().build(
+      new StringReader(content)
+    )
+    val fd1 = new SyndFeedInput().build(dom)
+    
     val lastupdate_til = fd.last_entry_url
     val old_entries = root.getEntries().asScala.map(_.asInstanceOf[SyndEntry])
-    for( synd <- fd1.rssItems ){
+    val new_entries = fd1.getEntries().asScala.map(_.asInstanceOf[SyndEntry])
+    
+    root = fd1 //update feed
+    for( synd <- new_entries ){
       //assumptions should be made that the entries are sorted
       
       if ( synd.getLink() == lastupdate_til ){
