@@ -15,7 +15,7 @@ trait FeedReader {
 }
 
 class SerFeedReader(val feedDescriptor: FeedDescriptor) extends FeedReader {
-  import mining.parser.SyndEntryOrdering._
+  //import mining.parser.SyndEntryOrdering._
 
   private val logger = LoggerFactory.getLogger(classOf[SerFeedReader])
 

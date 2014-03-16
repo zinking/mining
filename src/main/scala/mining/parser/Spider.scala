@@ -28,7 +28,7 @@ class Spider {
   
   def getRssFeed(url: String, md: FeedDescriptor):String = {
     val lastEtag = md.lastEtag
-    
+    logger.info(s"Spider parsing $url  ")
     val browsingHeaders = Map(
         "User-Agent"->"Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.95 Safari/537.36",
         "If-Modified-Since"-> md.lastParseTimestamp,
@@ -44,7 +44,7 @@ class Spider {
 	      		   .option(HttpOptions.readTimeout(5000))
 	      		   .asHeadersAndParse(Http.readString)
 	    
-	    md.lastParseTimestamp = TIME_FORMAT.format( new Date() )
+	    
 	      		   
 	    if( retcode == 304 ) return EMPTY_RSS_FEED
 	    if( retcode != 200 ) return EMPTY_RSS_FEED
@@ -66,6 +66,8 @@ class Spider {
 	      case _ =>
 	    }
 	    
+	    md.lastParseTimestamp = TIME_FORMAT.format( new Date() )
+	    
 	    //if ETag [some hash like c7f731d5d3dce2e82282450c4fcae4d6 ] didn't change, then content didn't change
 	    responseHeadersMap.get("ETag") match{
 	      case Some( value ) => {
@@ -86,6 +88,11 @@ class Spider {
           logger.error(s"Spider parsing $url TimeOut: ")
           return EMPTY_RSS_FEED 
         }
+        case ex: scalaj.http.HttpException => {
+          logger.error(s"Spider parsing $url HTTP exception: ")
+          return EMPTY_RSS_FEED 
+        }
+            
     }
   }
   
