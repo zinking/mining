@@ -33,8 +33,7 @@ class SerFeedReader(val feedDescriptor: FeedDescriptor) extends FeedReader {
         }
       }
       catch {
-        case ex: Exception => logger.error(s"Reading feeds from ser file failed for $feedDescriptor", ex)
-    		  				  throw ex
+        case ex: Exception => logger.error(s"Reading feeds from ser file failed for $feedDescriptor", ex); throw ex
       }
       finally {
         objIS.close()

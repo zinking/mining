@@ -17,7 +17,7 @@ class SerFeedWriter(val rssFeed: RSSFeed) extends FeedWriter {
   
   private val logger = LoggerFactory.getLogger(classOf[SerFeedWriter])
 
-  val feedDescriptor = FeedDescriptor(rssFeed.url)
+  val feedDescriptor = rssFeed.feedDescriptor
 
   override def write() = {
     val objOS = new ObjectOutputStream(new FileOutputStream(feedDescriptor.filePath))
@@ -27,8 +27,7 @@ class SerFeedWriter(val rssFeed: RSSFeed) extends FeedWriter {
       allFeeds.foreach(objOS.writeObject(_))
     } 
     catch {
-      case ex: Exception => logger.error(s"Writing feeds to ser file failed for $feedDescriptor", ex)
-    		  				throw ex
+      case ex: Exception => logger.error(s"Writing feeds to ser file failed for $feedDescriptor", ex); throw ex
     }
     finally {
       objOS.close()

@@ -9,19 +9,19 @@ import mining.io.FeedDescriptor
 import scala.collection.mutable
 import scala.math.Ordering
 
-class RSSFeed(val fd: FeedDescriptor) {
+class RSSFeed(val feedDescriptor: FeedDescriptor) {
   import SyndEntryOrdering._
 
-  val url = fd.feedUrl
+  val url = feedDescriptor.feedUrl
   
   val rssItems = mutable.SortedSet.empty[SyndEntry]
 
   /** Sync latest feeds */
   def syncFeed(): Unit = { 
-    val content = new Spider().getRssFeed(url, fd) //implicit dependency on metadata
+    val content = new Spider().getRssFeed(url, feedDescriptor) //implicit dependency on metadata
     val newSyndFeed = syndFeedFromXML(content)
     
-    val lastUpdateUrl = fd.lastEntryUrl
+    val lastUpdateUrl = feedDescriptor.lastEntryUrl
     val newEntries = newSyndFeed.getEntries().asScala.map(_.asInstanceOf[SyndEntry])
     
     for(synd <- newEntries){

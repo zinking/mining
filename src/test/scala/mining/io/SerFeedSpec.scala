@@ -15,7 +15,7 @@ class SerFeedSpec extends FunSuite
 			      with BeforeAndAfterAll {
   override def beforeAll = {
     val sep = FileSystems.getDefault().getSeparator() 
-    val tmpPath = new File(".").getCanonicalPath() + sep + "tmp" + sep
+    val tmpPath = List(new File(".").getCanonicalPath(), "tmp", "ser") mkString(sep)
     val tmpFolder = new File(tmpPath)
     if (!tmpFolder.exists())
       tmpFolder.mkdir()
