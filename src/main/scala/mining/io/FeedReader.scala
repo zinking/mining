@@ -38,8 +38,11 @@ class SerFeedReader(val feedDescriptor: FeedDescriptor) extends FeedReader {
         objIS.close()
       }
     }
+    //TODO: why put in map though, the constructor takes fd anyways
     Map(feedDescriptor -> entries) 
   }
+  
+  
 }
 
 object SerFeedReader {
