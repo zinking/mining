@@ -8,6 +8,8 @@ import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
 import mining.parser.RSSFeed
 import org.scalatest.junit.JUnitRunner
+import mining.io.ser.SerFeedWriter
+import mining.io.ser.SerFeedReader
 
 @RunWith(classOf[JUnitRunner])
 class SerFeedSpec extends FunSuite 

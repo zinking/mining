@@ -8,7 +8,7 @@ class FeedDescriptor(val feedUrl: String) extends Serializable {
 
   val feedUID = urlToUid(feedUrl) 
 
-  val filePath = feedLocation + feedUID + ".ser" 
+  val filePath = System.getProperty("mining.ser.path") + feedUID + ".ser" 
   
   var lastEtag = "" 
     
@@ -19,8 +19,6 @@ class FeedDescriptor(val feedUrl: String) extends Serializable {
 }
 
 object FeedDescriptor {
-  val feedLocation = System.getProperty("mining.ser.path")
-  
   /** 
    *  Creating instance of feed descriptor from url.
    *  Clients should try getting the feed descriptor from FeedManager instead of creating new ones.

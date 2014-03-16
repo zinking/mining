@@ -7,6 +7,7 @@ import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+import mining.io.ser.SerFeedManager
 
 @RunWith(classOf[JUnitRunner])
 class FeedManagerSpec extends FunSuite 
@@ -23,7 +24,7 @@ class FeedManagerSpec extends FunSuite
       tmpFolder.mkdir()
 
     System.setProperty("mining.feedmgr.path", tmpPath)
-    fmPath = tmpPath + sep + SerFeedManager.SER_FEED_MANAGER_NAME
+    fmPath = tmpPath + sep + "feed.manager.ser"
     
     //clean up the feed manager file
     val fmFile = new File(fmPath)
