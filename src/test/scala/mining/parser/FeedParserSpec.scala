@@ -16,8 +16,8 @@ class FeedParserSpec extends FunSuite
   test("Parser should be able to parse letitcrash RSS") {
     val url = "http://letitcrash.com/rss"
     val fd  = FeedDescriptor(url)
-    val feed = RSSFeed( fd )
-    feed.syncFeed(fd)
+    val feed = RSSFeed(fd)
+    feed.syncFeed
     val rssItemSize = feed.rssItems.size
     rssItemSize should (be > 10)
   }
@@ -25,8 +25,8 @@ class FeedParserSpec extends FunSuite
   test("Parser return 0 if nothing returned or timeout") {
     val url = "http://great-way1.appspot.com/"
     val fd  = FeedDescriptor(url)
-    val feed = RSSFeed( fd )
-    feed.syncFeed(fd)
+    val feed = RSSFeed(fd)
+    feed.syncFeed()
 
     val rssItemSize = feed.rssItems.size  
 
@@ -36,16 +36,16 @@ class FeedParserSpec extends FunSuite
   test("Parse coolshell RSS should work well for Chinese") {
     val url = "http://coolshell.cn/feed"
     val fd  = FeedDescriptor(url)
-    val feed = RSSFeed( fd )
-    feed.syncFeed(fd)
+    val feed = RSSFeed(fd)
+    feed.syncFeed()
     feed.rssItems.size should (be > 10)
   }
   
   test("RSS SyndEntry should be sorted as reversed time order") {
     val url = "http://coolshell.cn/feed"
     val fd  = FeedDescriptor(url)
-    val feed = RSSFeed( fd )
-    feed.syncFeed(fd)
+    val feed = RSSFeed(fd)
+    feed.syncFeed()
     
     feed.rssItems.head.getPublishedDate() should (be > feed.rssItems.tail.head.getPublishedDate())
   }

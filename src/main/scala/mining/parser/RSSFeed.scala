@@ -17,7 +17,7 @@ class RSSFeed(val fd: FeedDescriptor) {
   val rssItems = mutable.SortedSet.empty[SyndEntry]
 
   /** Sync latest feeds */
-  def syncFeed(fd:FeedDescriptor){ 
+  def syncFeed(): Unit = { 
     val content = new Spider().getRssFeed(url, fd) //implicit dependency on metadata
     val newSyndFeed = syndFeedFromXML(content)
     

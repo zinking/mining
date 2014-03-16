@@ -26,7 +26,7 @@ class SerFeedSpec extends FunSuite
   test("Ser feed write should be able to write rss items to file system") {
     val fd1 = FeedDescriptor("http://coolshell.cn/feed")
     val feed = RSSFeed(fd1) 
-    feed.syncFeed(fd1)
+    feed.syncFeed()
     val serWriter = SerFeedWriter(feed)
     
     //do the clean up first
