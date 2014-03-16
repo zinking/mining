@@ -13,11 +13,11 @@ import scala.xml._
 
 class FeedManager {
   
-  def createOrUpdateFeed(url: String){
-    val fd = loadFeedDescriptor( url )
-    val feed0 = SerFeedReader(fd).read_feed();
-    feed0.syncFeed(fd)
-    SerFeedWriter(feed0).write();
+  def createOrUpdateFeed(url: String) = {
+    val fd = loadFeedDescriptor(url)
+    val rssFeed = SerFeedReader(fd).read()
+    rssFeed.syncFeed()
+    SerFeedWriter(rssFeed).write()
     storeFeedDescriptor(fd)
   }
   
@@ -27,15 +27,15 @@ class FeedManager {
       val url = ( rssOutNode \ "@xmlUrl" ).text 
       createOrUpdateFeed( url )
     }
+
   }
   
-  def storeFeedDescriptor(fd:FeedDescriptor){//serialize
-    //TODO:
+  def storeFeedDescriptor(fd: FeedDescriptor) = {
+
   }
   
-  def loadFeedDescriptor(url:String):FeedDescriptor={//deserialize stub
-    //TODO:
-    return FeedDescriptor(url)
+  def loadFeedDescriptor(url: String): FeedDescriptor = {
+    FeedDescriptor(url)
   }
 
 }
@@ -54,7 +54,7 @@ object FeedManager {
 	}
 	catch {
 	   case ex: Exception => logger.error(s"Initializing feed manager error", ex)
-		  				  throw ex
+		  				     throw ex
 	}
 	finally {
 	   

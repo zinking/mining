@@ -92,7 +92,14 @@ class Spider {
           logger.error(s"Spider parsing $url HTTP exception: ")
           return EMPTY_RSS_FEED 
         }
-            
+        
+        case ex: java.net.UnknownHostException => {
+          logger.error(s"Spider parsing $url Unkown host exception: ")
+          return EMPTY_RSS_FEED     
+        }
+        
+        
+        
     }
   }
   

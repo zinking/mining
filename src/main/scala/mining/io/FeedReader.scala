@@ -46,9 +46,6 @@ class SerFeedReader(val feedDescriptor: FeedDescriptor) extends FeedReader {
     feed
   }
   
-  def read_feed():RSSFeed={//stub to be implemented
-    RSSFeed(feedDescriptor)
-  }
 }
 
 object SerFeedReader {
