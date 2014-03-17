@@ -87,5 +87,4 @@ class FeedParserSpec extends FunSuite
      content should equal (Spider.EMPTY_RSS_FEED)
   }
   
-
 }

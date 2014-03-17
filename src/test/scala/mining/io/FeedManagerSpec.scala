@@ -82,5 +82,4 @@ class FeedManagerSpec extends FunSuite
     feedManager.createOrUpdateFeedOPML( xml )
   }
   
- 
 }

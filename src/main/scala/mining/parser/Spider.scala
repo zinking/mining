@@ -19,13 +19,14 @@ object Spider {
 	</channel>
 	</rss>
     """
-  val TIME_FORMAT = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH)
 } 
 
 class Spider {
   import Spider._
   private val logger = LoggerFactory.getLogger(classOf[Spider])
   
+  val TIME_FORMAT = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH)
+
   def getRssFeed(url: String, md: FeedDescriptor):String = {
     val lastEtag = md.lastEtag
     logger.info(s"Spider parsing $url  ")
