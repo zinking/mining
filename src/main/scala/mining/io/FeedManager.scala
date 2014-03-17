@@ -9,16 +9,12 @@ import java.io.FileInputStream
 import scala.collection.mutable
 import java.io.ObjectOutputStream
 import java.io.FileOutputStream
+import mining.parser.RSSFeed
 
 trait FeedManager {
   
   /** Map from Feed UID to Feed Descriptor */
   def feedsMap: mutable.Map[String, FeedDescriptor]
-  
-  /** If the URL(UID) doesn't exist, create a new descriptor, else return directly */
-  def createOrGetFeedDescriptor(url: String): FeedDescriptor
-  
-  def createOrUpdateFeedOPML(root:Elem)
   
   /** Persist current feed descriptors */
   def saveFeedDescriptors()
@@ -31,5 +27,11 @@ trait FeedManager {
   
   /** Load the map of all the feed descriptors */
   def loadFeedDescriptors(): mutable.Map[String, FeedDescriptor]
+  
+  /** Create a new feed if the UID of the URL doesn't exist. Sync and persist after that */
+  def createOrUpdateFeed(url: String): RSSFeed 
+  
+  /** Check all feeds in OPML file */
+  def createOrUpdateFeedOPML(root:Elem)
 }
 

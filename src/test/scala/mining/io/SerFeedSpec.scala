@@ -14,15 +14,10 @@ import mining.io.ser.SerFeedReader
 @RunWith(classOf[JUnitRunner])
 class SerFeedSpec extends FunSuite 
 			      with ShouldMatchers 
-			      with BeforeAndAfterAll {
+			      with BeforeAndAfterAll 
+			      with FeedTestPrepare {
   override def beforeAll = {
-    val sep = FileSystems.getDefault().getSeparator() 
-    val tmpPath = List(new File(".").getCanonicalPath(), "tmp", "ser") mkString(sep)
-    val tmpFolder = new File(tmpPath)
-    if (!tmpFolder.exists())
-      tmpFolder.mkdir()
-
-    System.setProperty("mining.ser.path",  tmpPath)
+    prepareFolders()
   }
 
   test("Ser feed write should be able to write rss items to file system") {
