@@ -11,6 +11,9 @@ import scala.math.Ordering
 import org.jdom.input.JDOMParseException
 import org.slf4j.LoggerFactory
 import com.sun.syndication.feed.synd.SyndFeed
+import org.jdom.input.DOMBuilder
+import java.io.ByteArrayInputStream
+
 
 class RSSFeed(val feedDescriptor: FeedDescriptor) {
   //import SyndEntryOrdering._
@@ -48,9 +51,11 @@ class RSSFeed(val feedDescriptor: FeedDescriptor) {
   
   protected[parser] def syndFeedFromXML(feedXML: String):SyndFeed = {
     try{
-	    val dom = new SAXBuilder().build(
-	      new StringReader(feedXML)
-	    )
+    	//val builder = new DOMBuilder("org.jdom.adapters.JAXPDOMAdapter")
+    	val builder = new SAXBuilder()
+    	//val input  = new StringReader(feedXML)
+    	val input = new ByteArrayInputStream(feedXML.getBytes(feedDescriptor.encoding));
+	    val dom = builder.build(input)
 	    return new SyndFeedInput().build(dom)
     }
     catch{
@@ -71,9 +76,3 @@ class RSSFeed(val feedDescriptor: FeedDescriptor) {
 object RSSFeed {
   def apply(fd: FeedDescriptor) = new RSSFeed(fd)
 }
-
-//TODO: disable for the moment as not supported by all
-//if we maintain the order we retrieved, we should be fine.
-//object SyndEntryOrdering {
-//  implicit def syndEntryOrdering: Ordering[SyndEntry] = Ordering.fromLessThan((x, y) => x.getPublishedDate().compareTo(y.getPublishedDate()) > 0)
-//}

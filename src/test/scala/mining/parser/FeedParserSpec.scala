@@ -22,6 +22,25 @@ class FeedParserSpec extends FunSuite
     rssItemSize should (be > 10)
   }
   
+  test("Parser should be able to parse cppblog RSS UTF8 encoding") {
+    val url = "http://www.cppblog.com/7words/Rss.aspx"
+    val fd  = FeedDescriptor(url)
+    val feed = RSSFeed(fd)
+    feed.syncFeed
+    val rssItemSize = feed.rssItems.size
+    rssItemSize should (be >= 10)
+  }
+
+  
+  test("Parser should be able to parse smth RSS GB2312 encoding") {
+    val url = "http://www.newsmth.net/nForum/rss/topten"
+    val fd  = FeedDescriptor(url)
+    val feed = RSSFeed(fd)
+    feed.syncFeed
+    val rssItemSize = feed.rssItems.size
+    rssItemSize should (be >= 10)
+  }
+  
   test("Parser return 0 if nothing returned or timeout") {
     val url = "http://great-way1.appspot.com/"
     val fd  = FeedDescriptor(url)

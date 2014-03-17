@@ -66,6 +66,19 @@ class Spider {
 	      case _ =>
 	    }
 	    
+	    responseHeadersMap.get("Content-Type") match{
+	      case Some( value ) => {
+	         val charset = value(0)
+	         val pat = "charset="
+	         val i = charset.indexOf(pat)
+	         if( i > 0 ){
+	        	 val encoding = charset.substring(i+pat.length(), charset.length)
+	             md.encoding = encoding 
+	         }
+	      }
+	      case _ =>
+	    }
+	    
 	    md.lastParseTimestamp = TIME_FORMAT.format( new Date() )
 	    
 	    //if ETag [some hash like c7f731d5d3dce2e82282450c4fcae4d6 ] didn't change, then content didn't change

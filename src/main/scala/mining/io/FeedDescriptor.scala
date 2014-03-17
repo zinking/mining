@@ -14,6 +14,8 @@ class FeedDescriptor(val feedUrl: String) extends Serializable {
     
   var lastParseTimestamp = Spider.TIME_FORMAT.format(new Date(0) )
   var lastEntryUrl = ""
+    
+  var encoding = "UTF-8"
   
   override def toString = s"FeedDescriptor[$feedUID]"
 }
