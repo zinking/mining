@@ -1,7 +1,8 @@
 package mining.io
 
 import java.util.Date
-import mining.parser.Spider
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class FeedDescriptor(val feedUrl: String) extends Serializable {
   import FeedDescriptor._
@@ -10,9 +11,11 @@ class FeedDescriptor(val feedUrl: String) extends Serializable {
 
   val filePath = System.getProperty("mining.ser.path") + feedUID + ".ser" 
   
+  val TIME_FORMAT = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH)
+  
   var lastEtag = "" 
     
-  var lastParseTimestamp = Spider.TIME_FORMAT.format(new Date(0) )
+  var lastParseTimestamp = TIME_FORMAT.format(new Date(0))
   var lastEntryUrl = ""
   
   override def toString = s"FeedDescriptor[$feedUID]"
