@@ -8,6 +8,8 @@ import org.scalatest.matchers.ShouldMatchers
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import mining.io.ser.SerFeedManager
+import mining.io.ser.SerFeedReader
+import scala.xml.XML
 
 @RunWith(classOf[JUnitRunner])
 class FeedManagerSpec extends FunSuite 
@@ -15,6 +17,7 @@ class FeedManagerSpec extends FunSuite
                    	  with BeforeAndAfterAll {
 
   var fmPath: String = null
+  
 
   override def beforeAll = {
     val sep = FileSystems.getDefault().getSeparator() 
@@ -28,8 +31,13 @@ class FeedManagerSpec extends FunSuite
     
     //clean up the feed manager file
     val fmFile = new File(fmPath)
-    if (fmFile.exists())
-      fmFile.delete()
+    if (fmFile.exists()) fmFile.delete()
+    
+    ////A LITTLE DANGEROUS THOUGH
+    //TODO: we need to delete all the files produced instead of using this
+    for ( subfile <- tmpFolder.listFiles() ){ 
+      subfile.delete()
+    }
   }
   
   test("SerFeedManager should be able to store feed descriptor") {
@@ -46,13 +54,32 @@ class FeedManagerSpec extends FunSuite
     sfm.feedsMap.values.size should be (1) 
     sfm.loadDescriptorFromUrl(feedUrl).get.feedUrl should be (feedUrl)
   }
+  
+
 
   test("FeedManager should be able to parse single url") {
+    val url="http://coolshell.cn/feed"
+    val feedManager = SerFeedManager()
+    feedManager.createOrUpdateFeed( url )
+    val fd = FeedDescriptor(url)
+    val rssFeed = SerFeedReader(fd).read()
     
+    rssFeed.rssItems.size should (be > 10)
+  }
+  
+  test("SerFeedManager should be able to record the latest etag of a website"){
+    val feedUrl = "http://coolshell.cn/feed"
+    val sfm = SerFeedManager()
+    sfm.feedsMap.values.size should be (1) 
+    val letag = sfm.loadDescriptorFromUrl(feedUrl).get.lastEtag should not equal ( "")
   }
   
   test("FeedManager should be able to parse opml format") {
-    
+    val feedManager = SerFeedManager()
+    val sep = FileSystems.getDefault().getSeparator() 
+    val tmpPath = new File(".").getCanonicalPath() + sep + "config" + sep + "zhen_opml.xml"
+    val xml = XML.loadFile(tmpPath)
+    feedManager.createOrUpdateFeedOPML( xml )
   }
   
  

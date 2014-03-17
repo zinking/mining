@@ -84,17 +84,9 @@ class Spider {
     }
     catch {
         //FIXED: timeout, connection exception handling
-        case ex: java.net.SocketTimeoutException => {
-          logger.error(s"Spider parsing $url TimeOut: ")
-          return EMPTY_RSS_FEED 
-        }
-        case ex: scalaj.http.HttpException => {
-          logger.error(s"Spider parsing $url HTTP exception: ")
-          return EMPTY_RSS_FEED 
-        }
         
-        case ex: java.net.UnknownHostException => {
-          logger.error(s"Spider parsing $url Unkown host exception: ")
+        case ex:Throwable => {
+          logger.error(s"Spider parsing $url exception as $ex: ")
           return EMPTY_RSS_FEED     
         }
         

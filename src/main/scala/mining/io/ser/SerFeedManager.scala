@@ -65,8 +65,23 @@ class SerFeedManager extends FeedManager {
     feedsMap.get(uid).get
   }
   
+  def createOrUpdateFeed(url: String) = {
+    val fd = createOrGetFeedDescriptor(url)
+    val rssFeed = SerFeedReader(fd).read()
+    rssFeed.syncFeed()
+    SerFeedWriter(rssFeed).write()
+    saveFeedDescriptors( )
+  }
+  
+  def createOrUpdateFeedOPML(root:Elem){
+    val rssOutNodes = root \\ "outline" filter{node => (node \ "@type").text == "rss"}
+    for(  rssOutNode <- rssOutNodes ){
+      val url = ( rssOutNode \ "@xmlUrl" ).text 
+      createOrUpdateFeed( url )
+    }
+
+  }
     
-  def createOrUpdateFeedOPML(root:Elem) = ???
   
 }
 

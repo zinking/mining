@@ -56,7 +56,7 @@ class RSSFeed(val feedDescriptor: FeedDescriptor) {
     catch{
       //TODO:DOM exception for cynergysystems caused by the rss url has changed
       //TODO: SOME DOMAIN CANNOT BE SEEN WITHIN CHINA http://blogs.nitobi.com, these should be caputred by spider
-      case ex: JDOMParseException => logger.error(s"Parsing Exception with $url SKIPPING")
+      case ex: Throwable => logger.error(s"Parsing Exception for $url with $ex SKIPPING")
     }
     
     val dom = new SAXBuilder().build(
