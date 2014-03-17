@@ -1,0 +1,275 @@
+[main] INFO mining.parser.Spider - Spider parsing http://letitcrash.com/rss  
+[main] INFO mining.parser.Spider - Spider parsing http://great-way1.appspot.com/  
+[main] ERROR mining.parser.Spider - Spider parsing http://great-way1.appspot.com/ exception as java.net.SocketTimeoutException: connect timed out: 
+[main] INFO mining.parser.Spider - Spider parsing http://coolshell.cn/feed  
+[main] INFO mining.parser.Spider - Spider parsing http://coolshell.cn/feed  
+[main] INFO mining.parser.Spider - Spider parsing http://coolshell.cn/feed  
+[main] INFO mining.parser.Spider - Spider parsing http://coolshell.cn/feed skip as ETag["13c696442154b22d165987e656ceeb95"] didn't change 
+[main] INFO mining.parser.Spider - Spider parsing http://coolshell.cn/feed  
+[main] INFO mining.parser.Spider - Spider parsing http://coolshell.cn/feed  
+[main] INFO mining.parser.Spider - Spider parsing http://www.cppblog.com/7words/Rss.aspx  
+[main] ERROR mining.parser.RSSFeed - Parsing Exception for http://www.cppblog.com/7words/Rss.aspx with org.jdom.input.JDOMParseException: Error on line 1: 前言中不允许有内容。 SKIPPING
+[main] INFO mining.parser.Spider - Spider parsing http://www.cppblog.com/wc250en007/Rss.aspx  
+[main] ERROR mining.parser.RSSFeed - Parsing Exception for http://www.cppblog.com/wc250en007/Rss.aspx with org.jdom.input.JDOMParseException: Error on line 1: 前言中不允许有内容。 SKIPPING
+[main] INFO mining.parser.Spider - Spider parsing http://blog.csdn.net/zhuliting/rss/list  
+[main] INFO mining.parser.Spider - Spider parsing http://www.beedigital.net/blog/?feed=rss2  
+[main] INFO mining.parser.Spider - Spider parsing http://blogs.nitobi.com/andre/index.php/feed/  
+[main] ERROR mining.parser.RSSFeed - Parsing Exception for http://blogs.nitobi.com/andre/index.php/feed/ with org.jdom.input.JDOMParseException: Error on line 7: 对实体 "pre" 的引用必须以 ';' 分隔符结尾。 SKIPPING
+[main] INFO mining.parser.Spider - Spider parsing http://cynergysystems.com/blogs/atom  
+[main] ERROR mining.parser.RSSFeed - Parsing Exception for http://cynergysystems.com/blogs/atom with org.jdom.input.JDOMParseException: Error on line 260: 引用了实体 "copy", 但未声明它。 SKIPPING
+[main] INFO mining.parser.Spider - Spider parsing http://anirudhs.chaosnet.org/blog/weblog.xml  
+[main] INFO mining.parser.Spider - Spider parsing http://www.axelscript.com/feed/  
+[main] INFO mining.parser.Spider - Spider parsing http://www.billdwhite.com/wordpress/?feed=rss2  
+[main] INFO mining.parser.Spider - Spider parsing http://joelhooks.com/feed/  
+[main] ERROR mining.parser.Spider - Spider parsing http://joelhooks.com/feed/ exception as scalaj.http.HttpException: 404: Not Found: 
+[main] INFO mining.parser.Spider - Spider parsing http://expertria.com/index.php/feed  
+[main] ERROR mining.parser.Spider - Spider parsing http://expertria.com/index.php/feed exception as java.net.SocketTimeoutException: connect timed out: 
+[main] INFO mining.parser.Spider - Spider parsing http://www.cflex.net/news.cfm?ChannelID=1  
+[main] ERROR mining.parser.RSSFeed - Parsing Exception for http://www.cflex.net/news.cfm?ChannelID=1 with org.jdom.input.JDOMParseException: Error on line 13: 不允许有匹配 "[xX][mM][lL]" 的处理指令目标。 SKIPPING
+[main] INFO mining.parser.Spider - Spider parsing http://coenraets.org/blog/feed/  
+[main] ERROR mining.parser.Spider - Spider parsing http://coenraets.org/blog/feed/ exception as java.net.UnknownHostException: coenraets.org: 
+[main] INFO mining.parser.Spider - Spider parsing http://www.arpitonline.com/blog/?feed=rss2  
+[main] INFO mining.parser.Spider - Spider parsing http://www.dengjie.com/rss.asp  
+[main] INFO mining.parser.Spider - Spider parsing http://www.davidtucker.net/feed/  
+[main] ERROR mining.parser.Spider - Spider parsing http://www.davidtucker.net/feed/ exception as scalaj.http.HttpException: 403: Forbidden: 
+[main] INFO mining.parser.Spider - Spider parsing http://www.ericfeminella.com/blog/feed/  
+[main] ERROR mining.parser.Spider - Spider parsing http://www.ericfeminella.com/blog/feed/ exception as java.net.SocketTimeoutException: Read timed out: 
+[main] INFO mining.parser.Spider - Spider parsing http://blog.everythingflex.com/feed/  
+[main] ERROR mining.parser.Spider - Spider parsing http://blog.everythingflex.com/feed/ exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://flexblog.faratasystems.com/?feed=rss2  
+[main] INFO mining.parser.Spider - Spider parsing http://www.webstudio.com.cn/blog/?feed=rss2  
+[main] INFO mining.parser.Spider - Spider parsing http://nwebb.co.uk/blog/?feed=rss2  
+[main] ERROR mining.parser.Spider - Spider parsing http://nwebb.co.uk/blog/?feed=rss2 exception as scalaj.http.HttpException: 404: Not Found: 
+[main] INFO mining.parser.Spider - Spider parsing http://www.flexdaddy.info/feed/  
+[main] ERROR mining.parser.Spider - Spider parsing http://www.flexdaddy.info/feed/ exception as scalaj.http.HttpException: 404: Not Found: 
+[main] INFO mining.parser.Spider - Spider parsing http://flexjunk.com/feed/  
+[main] ERROR mining.parser.Spider - Spider parsing http://flexjunk.com/feed/ exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://dougmccune.com/blog/feed/  
+[main] ERROR mining.parser.Spider - Spider parsing http://dougmccune.com/blog/feed/ exception as scalaj.http.HttpException: 200: OK: 
+[main] INFO mining.parser.Spider - Spider parsing http://www.flexer.info/feed/  
+[main] ERROR mining.parser.Spider - Spider parsing http://www.flexer.info/feed/ exception as java.net.UnknownHostException: www.flexer.info: 
+[main] INFO mining.parser.Spider - Spider parsing http://feeds.feedburner.com/FlexExamples  
+[main] ERROR mining.parser.Spider - Spider parsing http://feeds.feedburner.com/FlexExamples exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://blog.flexgeek.in/feed/  
+[main] ERROR mining.parser.RSSFeed - Parsing Exception for http://blog.flexgeek.in/feed/ with org.jdom.input.JDOMParseException: Error on line 7: 对实体 "pre" 的引用必须以 ';' 分隔符结尾。 SKIPPING
+[main] INFO mining.parser.Spider - Spider parsing http://www.brucephillips.name/blog/rss.cfm?mode=full  
+[main] ERROR mining.parser.Spider - Spider parsing http://www.brucephillips.name/blog/rss.cfm?mode=full exception as scalaj.http.HttpException: 200: OK: 
+[main] INFO mining.parser.Spider - Spider parsing http://www.garyrgilbert.com/blog/rss.cfm?mode=full  
+[main] INFO mining.parser.Spider - Spider parsing http://www.gskinner.com/blog/index.rdf  
+[main] ERROR mining.parser.Spider - Spider parsing http://www.gskinner.com/blog/index.rdf exception as java.net.SocketTimeoutException: connect timed out: 
+[main] INFO mining.parser.Spider - Spider parsing http://blog.i2fly.com/?feed=rss2  
+[main] INFO mining.parser.Spider - Spider parsing http://blog.iconara.net/feed/  
+[main] ERROR mining.parser.Spider - Spider parsing http://blog.iconara.net/feed/ exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://www.insideria.com/atom.xml  
+[main] ERROR mining.parser.Spider - Spider parsing http://www.insideria.com/atom.xml exception as scalaj.http.HttpException: 200: OK: 
+[main] INFO mining.parser.Spider - Spider parsing http://jacwright.com/blog/feed/  
+[main] INFO mining.parser.Spider - Spider parsing http://www.jeffryhouser.com/rss.cfm?mode=full  
+[main] ERROR mining.parser.Spider - Spider parsing http://www.jeffryhouser.com/rss.cfm?mode=full exception as java.net.SocketTimeoutException: Read timed out: 
+[main] INFO mining.parser.Spider - Spider parsing http://www.kingnare.com/auzn/feed.asp  
+[main] INFO mining.parser.Spider - Spider parsing http://www.luar.com.hk/flashbook/index.rdf  
+[main] INFO mining.parser.Spider - Spider parsing http://casario.blogs.com/mmworld/atom.xml  
+[main] INFO mining.parser.Spider - Spider parsing http://www.metah.ch/blog/feed/  
+[main] INFO mining.parser.Spider - Spider parsing http://www.mrdoob.com/rss.php  
+[main] ERROR mining.parser.Spider - Spider parsing http://www.mrdoob.com/rss.php exception as scalaj.http.HttpException: 404: Not Found: 
+[main] INFO mining.parser.Spider - Spider parsing http://ccgi.arutherford.plus.com/blog/wordpress/?feed=rss2  
+[main] INFO mining.parser.Spider - Spider parsing http://www.nshen.net/blog/feed.asp  
+[main] ERROR mining.parser.Spider - Spider parsing http://www.nshen.net/blog/feed.asp exception as scalaj.http.HttpException: 404: Not Found: 
+[main] INFO mining.parser.Spider - Spider parsing http://ntt.cc/feed  
+[main] INFO mining.parser.Spider - Spider parsing http://feeds.feedburner.com/Oman3d  
+[main] ERROR mining.parser.Spider - Spider parsing http://feeds.feedburner.com/Oman3d exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://feeds.feedburner.com/probertson  
+[main] ERROR mining.parser.Spider - Spider parsing http://feeds.feedburner.com/probertson exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://lab.polygonal.de/feed/  
+[main] ERROR mining.parser.Spider - Spider parsing http://lab.polygonal.de/feed/ exception as java.net.SocketTimeoutException: connect timed out: 
+[main] INFO mining.parser.Spider - Spider parsing http://www.rockonflash.com/blog/?feed=rss2  
+[main] ERROR mining.parser.Spider - Spider parsing http://www.rockonflash.com/blog/?feed=rss2 exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://www.tink.ws/blog/feed/  
+[main] INFO mining.parser.Spider - Spider parsing http://feeds.feedburner.com/return_undefined  
+[main] ERROR mining.parser.Spider - Spider parsing http://feeds.feedburner.com/return_undefined exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://www.webapper.net/rss.cfm?mode=full  
+[main] INFO mining.parser.Spider - Spider parsing http://yakovfain.javadevelopersjournal.com/index.rss  
+[main] ERROR mining.parser.Spider - Spider parsing http://yakovfain.javadevelopersjournal.com/index.rss exception as java.net.SocketTimeoutException: connect timed out: 
+[main] INFO mining.parser.Spider - Spider parsing http://feeds.feedburner.com/good-tutorials-new  
+[main] ERROR mining.parser.Spider - Spider parsing http://feeds.feedburner.com/good-tutorials-new exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://feeds.feedburner.com/24thfloor  
+[main] ERROR mining.parser.Spider - Spider parsing http://feeds.feedburner.com/24thfloor exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://feeds2.feedburner.com/Line25  
+[main] INFO mining.parser.Spider - Spider parsing http://www.pixel2life.com/feeds/latest_10_tuts.xml  
+[main] ERROR mining.parser.Spider - Spider parsing http://www.pixel2life.com/feeds/latest_10_tuts.xml exception as java.net.SocketTimeoutException: connect timed out: 
+[main] INFO mining.parser.Spider - Spider parsing http://rss1.smashingmagazine.com/feed/  
+[main] ERROR mining.parser.Spider - Spider parsing http://rss1.smashingmagazine.com/feed/ exception as java.net.SocketTimeoutException: connect timed out: 
+[main] INFO mining.parser.Spider - Spider parsing http://feeds.feedburner.com/ThePhotoshopBlog  
+[main] ERROR mining.parser.Spider - Spider parsing http://feeds.feedburner.com/ThePhotoshopBlog exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://feeds.feedburner.com/tutorial9  
+[main] ERROR mining.parser.Spider - Spider parsing http://feeds.feedburner.com/tutorial9 exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://feedproxy.google.com/tutorial9  
+[main] ERROR mining.parser.Spider - Spider parsing http://feedproxy.google.com/tutorial9 exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://www.tutzor.com/rss.xml  
+[main] INFO mining.parser.Spider - Spider parsing http://blog.hjenglish.com/xinran/rss.aspx  
+[main] ERROR mining.parser.RSSFeed - Parsing Exception for http://blog.hjenglish.com/xinran/rss.aspx with org.jdom.input.JDOMParseException: Error on line 1: 前言中不允许有内容。 SKIPPING
+[main] INFO mining.parser.Spider - Spider parsing http://codingnow.cn/feed  
+[main] INFO mining.parser.Spider - Spider parsing http://avdongre.wordpress.com/feed/  
+[main] ERROR mining.parser.Spider - Spider parsing http://avdongre.wordpress.com/feed/ exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://blog.csdn.net/chen77716/rss/list  
+[main] ERROR mining.parser.RSSFeed - Parsing Exception for http://blog.csdn.net/chen77716/rss/list with org.jdom.input.JDOMParseException: Error on line 119: 在 CDATA 节中找到无效的 XML 字符 (Unicode: 0xc)。 SKIPPING
+[main] INFO mining.parser.Spider - Spider parsing http://codercareer.blogspot.com/feeds/posts/default  
+[main] ERROR mining.parser.Spider - Spider parsing http://codercareer.blogspot.com/feeds/posts/default exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://www.informationarchitects.jp/en/feed/atom/  
+[main] ERROR mining.parser.Spider - Spider parsing http://www.informationarchitects.jp/en/feed/atom/ exception as java.net.SocketTimeoutException: connect timed out: 
+[main] INFO mining.parser.Spider - Spider parsing http://mechanical-sympathy.blogspot.com/feeds/posts/default  
+[main] INFO mining.parser.Spider - Spider parsing http://www.ozymandias.com/feed  
+[main] ERROR mining.parser.RSSFeed - Parsing Exception for http://www.ozymandias.com/feed with org.jdom.input.JDOMParseException: Error on line 108: 元素类型 "link" 必须由匹配的结束标记 "</link>" 终止。 SKIPPING
+[main] INFO mining.parser.Spider - Spider parsing http://www.leeholmes.com/blog/SyndicationService.asmx/GetRss  
+[main] INFO mining.parser.Spider - Spider parsing http://robbinfan.com/rss  
+[main] INFO mining.parser.Spider - Spider parsing http://feeds.feedburner.com/solrex  
+[main] ERROR mining.parser.Spider - Spider parsing http://feeds.feedburner.com/solrex exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://rss.ycool.com/blog/wtommy.xml  
+[main] ERROR mining.parser.Spider - Spider parsing http://rss.ycool.com/blog/wtommy.xml exception as java.net.ConnectException: Connection refused: connect: 
+[main] INFO mining.parser.Spider - Spider parsing http://www.kavingray.com/blog/feed/  
+[main] ERROR mining.parser.RSSFeed - Parsing Exception for http://www.kavingray.com/blog/feed/ with org.jdom.input.JDOMParseException: Error on line 10: 对实体 "acc" 的引用必须以 ';' 分隔符结尾。 SKIPPING
+[main] INFO mining.parser.Spider - Spider parsing http://www.cnblogs.com/duguguiyu/rss  
+[main] ERROR mining.parser.RSSFeed - Parsing Exception for http://www.cnblogs.com/duguguiyu/rss with org.jdom.input.JDOMParseException: Error on line 1: 前言中不允许有内容。 SKIPPING
+[main] INFO mining.parser.Spider - Spider parsing http://cuitianyi.com/feed/  
+[main] INFO mining.parser.Spider - Spider parsing http://tianyi.yo2.cn/feed  
+[main] ERROR mining.parser.Spider - Spider parsing http://tianyi.yo2.cn/feed exception as scalaj.http.HttpException: 502: Bad Gateway: 
+[main] INFO mining.parser.Spider - Spider parsing http://ifeve.com/feed/  
+[main] INFO mining.parser.Spider - Spider parsing http://localhost-8080.com/feed/  
+[main] INFO mining.parser.Spider - Spider parsing http://dongxicheng.org/feed/  
+[main] INFO mining.parser.Spider - Spider parsing http://coolshell.cn/?feed=rss2  
+[main] INFO mining.parser.Spider - Spider parsing http://www.ruanyifeng.com/blog/atom.xml  
+[main] INFO mining.parser.Spider - Spider parsing http://www.azure.com.cn/feed.asp  
+[main] INFO mining.parser.Spider - Spider parsing http://www.beyond3d.com/rss  
+[main] INFO mining.parser.Spider - Spider parsing http://worrydream.com/feed.xml  
+[main] INFO mining.parser.Spider - Spider parsing http://gamedusa.blogspot.com/feeds/posts/default  
+[main] ERROR mining.parser.Spider - Spider parsing http://gamedusa.blogspot.com/feeds/posts/default exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://feeds.feedburner.com/LearnMasterCocos2dForIphoneGameDevelopment  
+[main] ERROR mining.parser.Spider - Spider parsing http://feeds.feedburner.com/LearnMasterCocos2dForIphoneGameDevelopment exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://blog.csdn.net/OpenHero/rss.aspx  
+[main] ERROR mining.parser.Spider - Spider parsing http://blog.csdn.net/OpenHero/rss.aspx exception as java.net.SocketTimeoutException: connect timed out: 
+[main] INFO mining.parser.Spider - Spider parsing http://blogs.msdn.com/b/shawnhar/rss.aspx  
+[main] INFO mining.parser.Spider - Spider parsing http://www.cnblogs.com/clayman/rss  
+[main] ERROR mining.parser.RSSFeed - Parsing Exception for http://www.cnblogs.com/clayman/rss with org.jdom.input.JDOMParseException: Error on line 1: 前言中不允许有内容。 SKIPPING
+[main] INFO mining.parser.Spider - Spider parsing http://www.cnblogs.com/Jedimaster/rss  
+[main] ERROR mining.parser.RSSFeed - Parsing Exception for http://www.cnblogs.com/Jedimaster/rss with org.jdom.input.JDOMParseException: Error on line 1: 前言中不允许有内容。 SKIPPING
+[main] INFO mining.parser.Spider - Spider parsing http://feeds.feedburner.com/JesseLiberty-SilverlightGeek  
+[main] ERROR mining.parser.Spider - Spider parsing http://feeds.feedburner.com/JesseLiberty-SilverlightGeek exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://silverlight.net/blogs/microsoft/rss.aspx  
+[main] ERROR mining.parser.RSSFeed - Parsing Exception for http://silverlight.net/blogs/microsoft/rss.aspx with java.lang.IllegalArgumentException: Invalid document SKIPPING
+[main] INFO mining.parser.Spider - Spider parsing http://www.nikhilk.net/Rss.ashx  
+[main] ERROR mining.parser.Spider - Spider parsing http://www.nikhilk.net/Rss.ashx exception as scalaj.http.HttpException: 404: Not Found: 
+[main] INFO mining.parser.Spider - Spider parsing http://feeds.feedburner.com/PeteBrown  
+[main] ERROR mining.parser.Spider - Spider parsing http://feeds.feedburner.com/PeteBrown exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://weblogs.asp.net/scottgu/rss.aspx  
+[main] ERROR mining.parser.Spider - Spider parsing http://weblogs.asp.net/scottgu/rss.aspx exception as scalaj.http.HttpException: 200: OK: 
+[main] INFO mining.parser.Spider - Spider parsing http://www.silverlighthack.com/syndication.axd?format=rss  
+[main] ERROR mining.parser.RSSFeed - Parsing Exception for http://www.silverlighthack.com/syndication.axd?format=rss with org.jdom.input.JDOMParseException: Error on line 1: 前言中不允许有内容。 SKIPPING
+[main] INFO mining.parser.Spider - Spider parsing http://feeds2.feedburner.com/SilverzineRss  
+[main] INFO mining.parser.Spider - Spider parsing http://feeds.feedburner.com/MsMossyblog  
+[main] ERROR mining.parser.Spider - Spider parsing http://feeds.feedburner.com/MsMossyblog exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://geekswithblogs.net/wynapsetechnicalmusings/Rss.aspx  
+[main] ERROR mining.parser.Spider - Spider parsing http://geekswithblogs.net/wynapsetechnicalmusings/Rss.aspx exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://www.cnblogs.com/nasa/rss  
+[main] ERROR mining.parser.RSSFeed - Parsing Exception for http://www.cnblogs.com/nasa/rss with org.jdom.input.JDOMParseException: Error on line 1: 前言中不允许有内容。 SKIPPING
+[main] INFO mining.parser.Spider - Spider parsing http://houxi.net/feed  
+[main] INFO mining.parser.Spider - Spider parsing http://songshuhui.net/archives/author/redqueen/feed  
+[main] INFO mining.parser.Spider - Spider parsing http://wvs.topleftpixel.com/index_fullfeed.rdf  
+[main] INFO mining.parser.Spider - Spider parsing http://www.greyscalegorilla.com/index.php?x=rss  
+[main] ERROR mining.parser.Spider - Spider parsing http://www.greyscalegorilla.com/index.php?x=rss exception as java.net.SocketTimeoutException: connect timed out: 
+[main] INFO mining.parser.Spider - Spider parsing http://feeds2.feedburner.com/iconlibrary  
+[main] INFO mining.parser.Spider - Spider parsing http://feeds.feedburner.com/iconlibrary  
+[main] ERROR mining.parser.Spider - Spider parsing http://feeds.feedburner.com/iconlibrary exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://googleblog.blogspot.com/atom.xml  
+[main] ERROR mining.parser.Spider - Spider parsing http://googleblog.blogspot.com/atom.xml exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://yizhate.blshe.com/rss/atom/534  
+[main] ERROR mining.parser.Spider - Spider parsing http://yizhate.blshe.com/rss/atom/534 exception as java.net.SocketTimeoutException: connect timed out: 
+[main] INFO mining.parser.Spider - Spider parsing http://blog.jobbole.com/feed/  
+[main] ERROR mining.parser.Spider - Spider parsing http://blog.jobbole.com/feed/ exception as scalaj.http.HttpException: 500: Internal Server Error: 
+[main] INFO mining.parser.Spider - Spider parsing http://www.izaobao.us/index.php/feed/  
+[main] ERROR mining.parser.Spider - Spider parsing http://www.izaobao.us/index.php/feed/ exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://feeds.feedburner.com/tamd  
+[main] ERROR mining.parser.Spider - Spider parsing http://feeds.feedburner.com/tamd exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://www.leiphone.com/feed  
+[main] ERROR mining.parser.Spider - Spider parsing http://www.leiphone.com/feed exception as java.net.SocketTimeoutException: Read timed out: 
+[main] INFO mining.parser.Spider - Spider parsing http://abeautifulwww.com/feed/  
+[main] ERROR mining.parser.Spider - Spider parsing http://abeautifulwww.com/feed/ exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://feeds.feedburner.com/adobetutorialz  
+[main] ERROR mining.parser.Spider - Spider parsing http://feeds.feedburner.com/adobetutorialz exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://blog.alternativagame.com/en/feed/  
+[main] ERROR mining.parser.RSSFeed - Parsing Exception for http://blog.alternativagame.com/en/feed/ with org.jdom.input.JDOMParseException: Error on line 7: 对实体 "pre" 的引用必须以 ';' 分隔符结尾。 SKIPPING
+[main] INFO mining.parser.Spider - Spider parsing http://feeds.feedburner.com/Ilovejackdanielsarticles  
+[main] ERROR mining.parser.Spider - Spider parsing http://feeds.feedburner.com/Ilovejackdanielsarticles exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://feeds.feedburner.com/Boagworldcom-ForThoseManagingWebsites  
+[main] ERROR mining.parser.Spider - Spider parsing http://feeds.feedburner.com/Boagworldcom-ForThoseManagingWebsites exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://feeds2.feedburner.com/designlol  
+[main] ERROR mining.parser.Spider - Spider parsing http://feeds2.feedburner.com/designlol exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://feeds.feedburner.com/emilychang  
+[main] ERROR mining.parser.Spider - Spider parsing http://feeds.feedburner.com/emilychang exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://www.geekchix.org/blog/feed/  
+[main] ERROR mining.parser.Spider - Spider parsing http://www.geekchix.org/blog/feed/ exception as scalaj.http.HttpException: 200: OK: 
+[main] INFO mining.parser.Spider - Spider parsing http://www.hemin.cn/blog/?feed=rss2  
+[main] INFO mining.parser.Spider - Spider parsing http://feeds.feedburner.com/hvdesigns  
+[main] ERROR mining.parser.Spider - Spider parsing http://feeds.feedburner.com/hvdesigns exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://blog.kevinandersson.dk/feed/  
+[main] ERROR mining.parser.RSSFeed - Parsing Exception for http://blog.kevinandersson.dk/feed/ with org.jdom.input.JDOMParseException: Error on line 7: 对实体 "pre" 的引用必须以 ';' 分隔符结尾。 SKIPPING
+[main] INFO mining.parser.Spider - Spider parsing http://feed.feedsky.com/PADMAG  
+[main] ERROR mining.parser.Spider - Spider parsing http://feed.feedsky.com/PADMAG exception as java.net.SocketTimeoutException: connect timed out: 
+[main] INFO mining.parser.Spider - Spider parsing http://feeds.feedburner.com/teehanlax  
+[main] ERROR mining.parser.Spider - Spider parsing http://feeds.feedburner.com/teehanlax exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://feeds2.feedburner.com/WebDesignerNotebook  
+[main] ERROR mining.parser.Spider - Spider parsing http://feeds2.feedburner.com/WebDesignerNotebook exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://food.chixinwangxiang.com/feed/  
+[main] INFO mining.parser.Spider - Spider parsing http://betterexplained.com/feed/  
+[main] INFO mining.parser.Spider - Spider parsing http://www.charlesgao.com/?feed=rss2  
+[main] INFO mining.parser.Spider - Spider parsing http://domino.research.ibm.com/Comm/wwwr_ponder.nsf/rsschallenge  
+[main] INFO mining.parser.Spider - Spider parsing http://mathschallenge.net/rss2.xml  
+[main] ERROR mining.parser.Spider - Spider parsing http://mathschallenge.net/rss2.xml exception as java.net.SocketTimeoutException: connect timed out: 
+[main] INFO mining.parser.Spider - Spider parsing http://www.matrix67.com/blog/feed.asp  
+[main] ERROR mining.parser.Spider - Spider parsing http://www.matrix67.com/blog/feed.asp exception as java.net.SocketTimeoutException: connect timed out: 
+[main] INFO mining.parser.Spider - Spider parsing http://feeds.feedburner.com/RecentChangesToInteractiveMathematicsMiscellanyAndPuzzles  
+[main] ERROR mining.parser.Spider - Spider parsing http://feeds.feedburner.com/RecentChangesToInteractiveMathematicsMiscellanyAndPuzzles exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://cdc.tencent.com/?feed=rss2  
+[main] INFO mining.parser.Spider - Spider parsing http://angela.ucdchina.com/?feed=rss2  
+[main] ERROR mining.parser.Spider - Spider parsing http://angela.ucdchina.com/?feed=rss2 exception as java.net.SocketTimeoutException: Read timed out: 
+[main] INFO mining.parser.Spider - Spider parsing http://graphics-geek.blogspot.com/feeds/posts/default  
+[main] ERROR mining.parser.Spider - Spider parsing http://graphics-geek.blogspot.com/feeds/posts/default exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://feeds.feedburner.com/AllButtonsPressed  
+[main] ERROR mining.parser.Spider - Spider parsing http://feeds.feedburner.com/AllButtonsPressed exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://feeds2.feedburner.com/LearningJquery  
+[main] ERROR mining.parser.Spider - Spider parsing http://feeds2.feedburner.com/LearningJquery exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://marcgrabanski.com/feed  
+[main] ERROR mining.parser.Spider - Spider parsing http://marcgrabanski.com/feed exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://feeds2.feedburner.com/MaxKiesler  
+[main] ERROR mining.parser.Spider - Spider parsing http://feeds2.feedburner.com/MaxKiesler exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://rainypixels.com/rss-all/  
+[main] ERROR mining.parser.RSSFeed - Parsing Exception for http://rainypixels.com/rss-all/ with java.lang.IllegalArgumentException: Invalid document SKIPPING
+[main] INFO mining.parser.Spider - Spider parsing http://feeds.feedburner.com/remysharp  
+[main] ERROR mining.parser.Spider - Spider parsing http://feeds.feedburner.com/remysharp exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://blog.rebeccamurphey.com/rss.xml  
+[main] ERROR mining.parser.Spider - Spider parsing http://blog.rebeccamurphey.com/rss.xml exception as scalaj.http.HttpException: 404: Not Found: 
+[main] INFO mining.parser.Spider - Spider parsing http://www.webchina110.cn/?feed=rss2  
+[main] INFO mining.parser.Spider - Spider parsing http://www.css88.com/feed  
+[main] INFO mining.parser.Spider - Spider parsing http://weilaixu.cn/feed.php  
+[main] ERROR mining.parser.Spider - Spider parsing http://weilaixu.cn/feed.php exception as scalaj.http.HttpException: 404: Not Found: 
+[main] INFO mining.parser.Spider - Spider parsing http://feed.feedsky.com/sofish  
+[main] ERROR mining.parser.Spider - Spider parsing http://feed.feedsky.com/sofish exception as java.net.SocketTimeoutException: connect timed out: 
+[main] INFO mining.parser.Spider - Spider parsing http://feed.aoao.org.cn/  
+[main] ERROR mining.parser.RSSFeed - Parsing Exception for http://feed.aoao.org.cn/ with org.jdom.input.JDOMParseException: Error on line 20: 元素类型 "meta" 必须由匹配的结束标记 "</meta>" 终止。 SKIPPING
+[main] INFO mining.parser.Spider - Spider parsing http://feed.feedsky.com/whitecrow_blog  
+[main] ERROR mining.parser.Spider - Spider parsing http://feed.feedsky.com/whitecrow_blog exception as java.net.SocketTimeoutException: connect timed out: 
+[main] INFO mining.parser.Spider - Spider parsing http://tension.name/feed/  
+[main] INFO mining.parser.Spider - Spider parsing http://www.misuisui.com/weblog/?feed=rss2  
+[main] ERROR mining.parser.Spider - Spider parsing http://www.misuisui.com/weblog/?feed=rss2 exception as java.net.SocketTimeoutException: connect timed out: 
+[main] INFO mining.parser.Spider - Spider parsing http://www.pufen.net/feed/  
+[main] INFO mining.parser.Spider - Spider parsing http://www.alistapart.com/site/rss  
+[main] ERROR mining.parser.Spider - Spider parsing http://www.alistapart.com/site/rss exception as java.net.SocketTimeoutException: connect timed out: 
+[main] INFO mining.parser.Spider - Spider parsing http://android-developers.blogspot.com/feeds/posts/default  
+[main] ERROR mining.parser.Spider - Spider parsing http://android-developers.blogspot.com/feeds/posts/default exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://feeds2.feedburner.com/css3  
+[main] ERROR mining.parser.Spider - Spider parsing http://feeds2.feedburner.com/css3 exception as java.net.SocketTimeoutException: connect timed out: 
+[main] INFO mining.parser.Spider - Spider parsing http://davidbcalhoun.com/?feed=rss2  
+[main] ERROR mining.parser.RSSFeed - Parsing Exception for http://davidbcalhoun.com/?feed=rss2 with org.jdom.input.JDOMParseException: Error on line 10: 引用了实体 "hellip", 但未声明它。 SKIPPING
+[main] INFO mining.parser.Spider - Spider parsing http://googlemobile.blogspot.com/feeds/posts/default  
+[main] ERROR mining.parser.Spider - Spider parsing http://googlemobile.blogspot.com/feeds/posts/default exception as java.net.SocketException: Connection reset: 
+[main] INFO mining.parser.Spider - Spider parsing http://jquerymobile.com/feed/  
+[main] ERROR mining.parser.RSSFeed - Parsing Exception for http://jquerymobile.com/feed/ with org.jdom.input.JDOMParseException: Error on line 1: 前言中不允许有内容。 SKIPPING
+[main] INFO mining.parser.Spider - Spider parsing http://webkit.org/blog/feed/  
