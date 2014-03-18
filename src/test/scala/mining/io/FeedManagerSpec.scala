@@ -14,36 +14,16 @@ import scala.xml.XML
 @RunWith(classOf[JUnitRunner])
 class FeedManagerSpec extends FunSuite 
                    	  with ShouldMatchers 
-                   	  with BeforeAndAfterAll {
-
-  var fmPath: String = null
-  
+                   	  with BeforeAndAfterAll 
+                   	  with FeedTestPrepare {
 
   override def beforeAll = {
-    val sep = FileSystems.getDefault().getSeparator() 
-    val tmpPath = List(new File(".").getCanonicalPath(), "tmp", "fm") mkString(sep)
-    val tmpFolder = new File(tmpPath)
-    if (!tmpFolder.exists())
-      tmpFolder.mkdir()
-
-    System.setProperty("mining.feedmgr.path", tmpPath)
-    fmPath = tmpPath + sep + "feed.manager.ser"
-    
-    //clean up the feed manager file
-    val fmFile = new File(fmPath)
-    if (fmFile.exists()) fmFile.delete()
-    
-    ////A LITTLE DANGEROUS THOUGH
-    //TODO: we need to delete all the files produced instead of using this
-    for ( subfile <- tmpFolder.listFiles() ){ 
-      subfile.delete()
-    }
+	prepareFolders()
   }
   
   test("SerFeedManager should be able to store feed descriptor") {
 	val sfm = SerFeedManager()
     val fd = sfm.createOrGetFeedDescriptor("http://coolshell.cn/feed")
-    sfm.saveFeedDescriptors()
   
     new File(fmPath).exists() should be (true)
   }
@@ -55,14 +35,10 @@ class FeedManagerSpec extends FunSuite
     sfm.loadDescriptorFromUrl(feedUrl).get.feedUrl should be (feedUrl)
   }
   
-
-
   test("FeedManager should be able to parse single url") {
     val url="http://coolshell.cn/feed"
     val feedManager = SerFeedManager()
-    feedManager.createOrUpdateFeed( url )
-    val fd = FeedDescriptor(url)
-    val rssFeed = SerFeedReader(fd).read()
+    val rssFeed = feedManager.createOrUpdateFeed(url)
     
     rssFeed.rssItems.size should (be > 10)
   }
@@ -71,7 +47,7 @@ class FeedManagerSpec extends FunSuite
     val feedUrl = "http://coolshell.cn/feed"
     val sfm = SerFeedManager()
     sfm.feedsMap.values.size should be (1) 
-    val letag = sfm.loadDescriptorFromUrl(feedUrl).get.lastEtag should not equal ( "")
+    val letag = sfm.loadDescriptorFromUrl(feedUrl).get.lastEtag should not equal ("")
   }
   
   test("FeedManager should be able to parse opml format") {
@@ -79,7 +55,10 @@ class FeedManagerSpec extends FunSuite
     val sep = FileSystems.getDefault().getSeparator() 
     val tmpPath = new File(".").getCanonicalPath() + sep + "config" + sep + "zhen_opml.xml"
     val xml = XML.loadFile(tmpPath)
-    feedManager.createOrUpdateFeedOPML( xml )
+    feedManager.createOrUpdateFeedOPML(xml)
+    
+    Thread.sleep(10000)
+    feedManager.feedsMap.size should be > (30)
   }
   
 }

@@ -3,19 +3,21 @@ package mining.io
 import java.util.Date
 import java.text.SimpleDateFormat
 import java.util.Locale
+import java.nio.file.FileSystems
+import mining.util.DateUtil
 
 class FeedDescriptor(val feedUrl: String) extends Serializable {
   import FeedDescriptor._
 
   val feedUID = urlToUid(feedUrl) 
 
-  val filePath = System.getProperty("mining.ser.path") + feedUID + ".ser" 
-  
-  val TIME_FORMAT = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH)
+  val filePath = System.getProperty("mining.ser.path") +  PATH_SEPERATOR + feedUID + ".ser" 
   
   var lastEtag = "" 
     
-  var lastParseTimestamp = TIME_FORMAT.format(new Date(0))
+  //use the util method to reduce the size after serialization
+  var lastParseTimestamp = DateUtil.getParser.format(new Date(0))
+
   var lastEntryUrl = ""
     
   var encoding = "UTF-8"
@@ -24,6 +26,8 @@ class FeedDescriptor(val feedUrl: String) extends Serializable {
 }
 
 object FeedDescriptor {
+  val PATH_SEPERATOR = FileSystems.getDefault().getSeparator()
+
   /** 
    *  Creating instance of feed descriptor from url.
    *  Clients should try getting the feed descriptor from FeedManager instead of creating new ones.
@@ -32,4 +36,5 @@ object FeedDescriptor {
   
   //TODO:still not perfect, best be fixed lenght format
   def urlToUid(url: String) = url.replaceAll("""http://""", "").replaceAll("[^a-zA-Z0-9]+","");
+  
 } 

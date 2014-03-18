@@ -11,16 +11,19 @@ import scala.xml.Elem
 import java.nio.file.FileSystems
 import mining.io.FeedDescriptor
 import mining.io.FeedManager
+import mining.parser.RSSFeed
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits._
 
 class SerFeedManager extends FeedManager {
 
   private val logger = LoggerFactory.getLogger(classOf[SerFeedManager])
   
-  private val serLocation = System.getProperty("mining.feedmgr.path") + FileSystems.getDefault().getSeparator() + "feed.manager.ser"
+  private val serLocation = System.getProperty("mining.feedmgr.path") + FeedDescriptor.PATH_SEPERATOR + "feedmanager.ser"
   
-  val feedsMap = loadFeedDescriptors()  
+  override val feedsMap = loadFeedDescriptors()  
   
-  def saveFeedDescriptors() = {
+  override def saveFeedDescriptors() = {
     val objOS = new ObjectOutputStream(new FileOutputStream(serLocation))
     try {
       objOS.writeInt(feedsMap.size)
@@ -34,7 +37,7 @@ class SerFeedManager extends FeedManager {
     }
   }
 
-  def loadFeedDescriptors() = {
+  override def loadFeedDescriptors() = {
     val map = mutable.Map.empty[String, FeedDescriptor]
     val mgrFile = new File(serLocation)
 
@@ -58,31 +61,34 @@ class SerFeedManager extends FeedManager {
     map
   }
   
-  def createOrGetFeedDescriptor(url: String): FeedDescriptor = {
-    val uid = FeedDescriptor.urlToUid(url)
-    if(!feedsMap.contains(uid))
-      feedsMap += (uid -> FeedDescriptor(url))
-    feedsMap.get(uid).get
-  }
-  
-  def createOrUpdateFeed(url: String) = {
+  override def createOrUpdateFeed(url: String): RSSFeed = {
     val fd = createOrGetFeedDescriptor(url)
     val rssFeed = SerFeedReader(fd).read()
     rssFeed.syncFeed()
     SerFeedWriter(rssFeed).write()
-    saveFeedDescriptors( )
-  }
-  
-  def createOrUpdateFeedOPML(root:Elem){
-    val rssOutNodes = root \\ "outline" filter{node => (node \ "@type").text == "rss"}
-    for(  rssOutNode <- rssOutNodes ){
-      val url = ( rssOutNode \ "@xmlUrl" ).text 
-      createOrUpdateFeed( url )
-    }
+    saveFeedDescriptors()
 
+    rssFeed
   }
-    
   
+  //TODO:Put simple concurrent here. Add a return type to the method. 
+  override def createOrUpdateFeedOPML(root: Elem) = {
+    val rssOutNodes = root \\ "outline" filter{node => (node \ "@type").text == "rss"}
+    for (rssOutNode <- rssOutNodes) {
+      val url = (rssOutNode \ "@xmlUrl").text 
+      Future{ createOrUpdateFeed(url) }
+    }
+  }
+  
+  /** Create a new feed descriptor if it doesn't exist. Also sync to ser file. */
+  protected[io] def createOrGetFeedDescriptor(url: String): FeedDescriptor = {
+    val uid = FeedDescriptor.urlToUid(url)
+    if (!feedsMap.contains(uid)) {
+      feedsMap += (uid -> FeedDescriptor(url))
+      saveFeedDescriptors()
+    }
+    feedsMap.get(uid).get
+  }
 }
 
 object SerFeedManager {
