@@ -58,7 +58,7 @@ class FeedManagerSpec extends FunSuite
     feedManager.createOrUpdateFeedOPML(xml)
     
     Thread.sleep(10000)
-    feedManager.feedsMap.size should be > (30)
+    feedManager.feedsMap.size should be > (3)
   }
   
 }
