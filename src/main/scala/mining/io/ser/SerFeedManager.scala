@@ -14,12 +14,13 @@ import mining.io.FeedManager
 import mining.parser.RSSFeed
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits._
+import mining.util.DirectoryUtil
 
 class SerFeedManager extends FeedManager {
 
   private val logger = LoggerFactory.getLogger(classOf[SerFeedManager])
   
-  private val serLocation = System.getProperty("mining.feedmgr.path") + FeedDescriptor.PATH_SEPERATOR + "feedmanager.ser"
+  private val serLocation = DirectoryUtil.pathFromPaths(System.getProperty("mining.feedmgr.path"), "feedmanager.ser")
   
   override val feedsMap = loadFeedDescriptors()  
   

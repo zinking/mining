@@ -10,6 +10,7 @@ import org.scalatest.junit.JUnitRunner
 import mining.io.ser.SerFeedManager
 import mining.io.ser.SerFeedReader
 import scala.xml.XML
+import mining.util.DirectoryUtil
 
 @RunWith(classOf[JUnitRunner])
 class FeedManagerSpec extends FunSuite 
@@ -52,8 +53,7 @@ class FeedManagerSpec extends FunSuite
   
   test("FeedManager should be able to parse opml format") {
     val feedManager = SerFeedManager()
-    val sep = FileSystems.getDefault().getSeparator() 
-    val tmpPath = new File(".").getCanonicalPath() + sep + "config" + sep + "zhen_opml.xml"
+    val tmpPath = DirectoryUtil.pathFromProject("config", "zhen_opml.xml")
     val xml = XML.loadFile(tmpPath)
     feedManager.createOrUpdateFeedOPML(xml)
     
