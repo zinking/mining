@@ -5,13 +5,14 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import java.nio.file.FileSystems
 import mining.util.DateUtil
+import mining.util.DirectoryUtil
 
 class FeedDescriptor(val feedUrl: String) extends Serializable {
   import FeedDescriptor._
 
   val feedUID = urlToUid(feedUrl) 
 
-  val filePath = System.getProperty("mining.ser.path") +  PATH_SEPERATOR + feedUID + ".ser" 
+  val filePath = DirectoryUtil.pathFromPaths(System.getProperty("mining.ser.path"), feedUID + ".ser")
   
   var lastEtag = "" 
     
@@ -26,8 +27,6 @@ class FeedDescriptor(val feedUrl: String) extends Serializable {
 }
 
 object FeedDescriptor {
-  val PATH_SEPERATOR = FileSystems.getDefault().getSeparator()
-
   /** 
    *  Creating instance of feed descriptor from url.
    *  Clients should try getting the feed descriptor from FeedManager instead of creating new ones.
