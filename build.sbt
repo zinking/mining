@@ -21,7 +21,11 @@ libraryDependencies ++= Seq("com.typesafe.akka" %% "akka-actor" % "2.2.3",
     					    "org.scalaj" %% "scalaj-http" % "0.3.14" )
     					   
 libraryDependencies ++= Seq("org.slf4j" % "slf4j-api" % "1.7.5",
-    					   "org.slf4j" % "slf4j-simple" % "1.7.5")
+    					    "org.slf4j" % "slf4j-simple" % "1.7.5",
+    					    "org.slf4j" % "slf4j-nop" % "1.7.5")
+
+libraryDependencies ++= Seq("com.typesafe.slick" %% "slick" % "2.0.1",
+                            "com.h2database"     %  "h2"    % "1.3.166") 
   					   
     					   
 //The following configuration is in the format of sbt 0.12 

@@ -1,9 +1,7 @@
 package mining.io
 
-import mining.parser.RSSFeed
-
 trait FeedReader {
-  def feedDescriptor: FeedDescriptor
+  def feedDescriptor: Feed
   
   def read(): RSSFeed 
 }

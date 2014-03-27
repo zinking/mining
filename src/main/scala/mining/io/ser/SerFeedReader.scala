@@ -1,21 +1,22 @@
 package mining.io.ser
 
 import mining.io.FeedReader
-import mining.io.FeedDescriptor
-import mining.parser.RSSFeed
+import mining.io.Feed
+import mining.io.RSSFeed
 import com.sun.syndication.feed.synd.SyndEntry
 import java.io.ObjectInputStream
 import java.io.File
 import scala.collection.mutable
 import org.slf4j.LoggerFactory
 import java.io.FileInputStream
+import mining.io.Story
 
-class SerFeedReader(val feedDescriptor: FeedDescriptor) extends FeedReader {
+class SerFeedReader(val feedDescriptor: Feed) extends FeedReader {
 
   private val logger = LoggerFactory.getLogger(classOf[SerFeedReader])
 
   override def read(): RSSFeed = {
-    val entries = mutable.Buffer.empty[SyndEntry]
+    val entries = mutable.Buffer.empty[Story]
     val feedFile = new File(feedDescriptor.filePath)
     if (feedFile.exists()) {
       val objIS = new ObjectInputStream(new FileInputStream(feedFile))
@@ -23,7 +24,7 @@ class SerFeedReader(val feedDescriptor: FeedDescriptor) extends FeedReader {
         val counts = objIS.readInt()
         for (i <- 0 until counts) {
           objIS.readObject() match {
-            case feedEntry: SyndEntry => entries += feedEntry
+            case story: Story => entries += story 
           }
         }
       }
@@ -43,5 +44,5 @@ class SerFeedReader(val feedDescriptor: FeedDescriptor) extends FeedReader {
 }
 
 object SerFeedReader {
-  def apply(feedDescriptor: FeedDescriptor) = new SerFeedReader(feedDescriptor)
+  def apply(feedDescriptor: Feed) = new SerFeedReader(feedDescriptor)
 }

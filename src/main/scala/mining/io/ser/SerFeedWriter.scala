@@ -1,7 +1,7 @@
 package mining.io.ser
 
 import mining.io.FeedWriter
-import mining.parser.RSSFeed
+import mining.io.RSSFeed
 import java.io.FileOutputStream
 import java.io.ObjectOutputStream
 import org.slf4j.LoggerFactory
@@ -10,12 +10,12 @@ class SerFeedWriter(val rssFeed: RSSFeed) extends FeedWriter {
   
   private val logger = LoggerFactory.getLogger(classOf[SerFeedWriter])
 
-  val feedDescriptor = rssFeed.feedDescriptor
+  val feedDescriptor = rssFeed.feed
 
   override def write() = {
     val objOS = new ObjectOutputStream(new FileOutputStream(feedDescriptor.filePath))
     try {
-      val allFeeds = rssFeed.rssItems
+      val allFeeds = rssFeed.stories
       objOS.writeInt(allFeeds.size)
       allFeeds.foreach(objOS.writeObject(_))
     } 

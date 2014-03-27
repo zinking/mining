@@ -33,7 +33,7 @@ class FeedManagerSpec extends FunSuite
     val feedUrl = "http://coolshell.cn/feed"
     val sfm = SerFeedManager()
     sfm.feedsMap.values.size should be (1) 
-    sfm.loadDescriptorFromUrl(feedUrl).get.feedUrl should be (feedUrl)
+    sfm.loadFeedFromUrl(feedUrl).get.url should be (feedUrl)
   }
   
   test("FeedManager should be able to parse single url") {
@@ -41,14 +41,14 @@ class FeedManagerSpec extends FunSuite
     val feedManager = SerFeedManager()
     val rssFeed = feedManager.createOrUpdateFeed(url)
     
-    rssFeed.rssItems.size should (be > 10)
+    rssFeed.stories.size should (be > 10)
   }
   
   test("SerFeedManager should be able to record the latest etag of a website"){
     val feedUrl = "http://coolshell.cn/feed"
     val sfm = SerFeedManager()
     sfm.feedsMap.values.size should be (1) 
-    val letag = sfm.loadDescriptorFromUrl(feedUrl).get.lastEtag should not equal ("")
+    val letag = sfm.loadFeedFromUrl(feedUrl).get.lastEtag should not equal ("")
   }
   
   test("FeedManager should be able to parse opml format") {

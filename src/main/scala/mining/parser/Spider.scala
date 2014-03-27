@@ -3,12 +3,16 @@ package mining.parser
 import scalaj.http.Http
 import scalaj.http.HttpOptions
 import org.slf4j.LoggerFactory
-import mining.io.FeedDescriptor
+import mining.io.Feed
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.Date
+import mining.util.DateUtil
 
 object Spider {
+  
+  def apply() = new Spider()
+
   val EMPTY_RSS_FEED = """
 	<rss version="2.0">
 	<channel>
@@ -25,14 +29,13 @@ class Spider {
   import Spider._
   private val logger = LoggerFactory.getLogger(classOf[Spider])
   
-  val TIME_FORMAT = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH)
-
-  def getRssFeed(url: String, md: FeedDescriptor):String = {
-    val lastEtag = md.lastEtag
-    logger.info(s"Spider parsing $url  ")
+  def getFeedContent(feed: Feed):String = {
+    val url = feed.url
+    val lastEtag = feed.lastEtag
+    logger.info(s"Spider parsing $url")
     val browsingHeaders = Map(
         "User-Agent"->"Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.95 Safari/537.36",
-        "If-Modified-Since"-> md.lastParseTimestamp,
+        "If-Modified-Since"-> DateUtil.getParser.format(feed.checked),
         "If-None-Match" -> lastEtag
         )
 
@@ -57,9 +60,9 @@ class Spider {
 	    responseHeadersMap.get("Last-Modified") match{
 	      case Some( value ) => {
 	         val latest_ts = value(0)
-	         val t1 = TIME_FORMAT.parse(latest_ts)
-	         val t0 = TIME_FORMAT.parse(md.lastParseTimestamp)
-	         if( t1.compareTo(t0) < 0  ){
+	         val t1 = DateUtil.getParser.parse(latest_ts)
+	         val t0 = feed.checked
+	         if(t1.compareTo(t0) < 0) {
 	           logger.info(s"Spider parsing $url skip as timestamp $t1 still old ")
 	           return EMPTY_RSS_FEED 
 	         }
@@ -74,18 +77,18 @@ class Spider {
 	         val i = charset.indexOf(pat)
 	         if( i > 0 ){
 	        	 val encoding = charset.substring(i+pat.length(), charset.length)
-	             md.encoding = encoding 
+	             feed.encoding = encoding 
 	         }
 	      }
 	      case _ =>
 	    }
 	    
-	    md.lastParseTimestamp = TIME_FORMAT.format( new Date() )
+	    feed.checked = new java.sql.Date(new Date().getTime())
 	    
 	    //if ETag [some hash like c7f731d5d3dce2e82282450c4fcae4d6 ] didn't change, then content didn't change
 	    responseHeadersMap.get("ETag") match{
 	      case Some( value ) => {
-	        md.lastEtag = value(0) //update etag
+	        feed.lastEtag = value(0) //update etag
 	        if ( value(0) == lastEtag ) {
 	          logger.info(s"Spider parsing $url skip as ETag[$lastEtag] didn't change ")
 	          return EMPTY_RSS_FEED 
@@ -103,12 +106,6 @@ class Spider {
           logger.error(s"Spider parsing $url exception as $ex: ")
           return EMPTY_RSS_FEED     
         }
-        
-        
-        
     }
   }
-  
-  
-
 }

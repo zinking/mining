@@ -1,37 +1,52 @@
 package mining.io
 
-import java.io.File
-import java.nio.file.FileSystems
-import scala.xml._
-import org.slf4j.LoggerFactory
-import java.io.ObjectInputStream
-import java.io.FileInputStream
 import scala.collection.mutable
-import java.io.ObjectOutputStream
-import java.io.FileOutputStream
-import mining.parser.RSSFeed
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.xml.Elem
+
+import mining.util.UrlUtil
 
 trait FeedManager {
   
   /** Map from Feed UID to Feed Descriptor */
-  def feedsMap: mutable.Map[String, FeedDescriptor]
+  def feedsMap: mutable.Map[String, Feed]
   
   /** Persist current feed descriptors */
-  def saveFeedDescriptors()
+  def saveFeed(feed: Feed)
   
   /** Get the descriptor from feed URL */
-  def loadDescriptorFromUrl(url: String): Option[FeedDescriptor] = feedsMap.get(FeedDescriptor.urlToUid(url))
+  def loadFeedFromUrl(url: String): Option[Feed] = feedsMap.get(UrlUtil.urlToUid(url))
   
   /** Get the descriptor from feed UID */
-  def loadDescriptorFromUid(uid: String): Option[FeedDescriptor] = feedsMap.get(uid) 
+  def loadFeedFromUid(uid: String): Option[Feed] = feedsMap.get(uid) 
   
   /** Load the map of all the feed descriptors */
-  def loadFeedDescriptors(): mutable.Map[String, FeedDescriptor]
+  def loadFeeds(): mutable.Map[String, Feed]
   
   /** Create a new feed if the UID of the URL doesn't exist. Sync and persist after that */
   def createOrUpdateFeed(url: String): RSSFeed 
   
+  /** Create a new feed descriptor if it doesn't exist. Also sync to ser file. */
+  def createOrGetFeedDescriptor(url: String): Feed = {
+    loadFeedFromUrl(url) match {
+      case None => {
+        val feed = Feed(url)
+        feedsMap += UrlUtil.urlToUid(url) -> feed
+        saveFeed(feed)
+      }
+      case _ =>
+    }
+    loadFeedFromUrl(url).get 
+  }
+  
   /** Check all feeds in OPML file */
-  def createOrUpdateFeedOPML(root:Elem)
+  def createOrUpdateFeedOPML(root: Elem) = {
+    val rssOutNodes = root \\ "outline" filter{node => (node \ "@type").text == "rss"}
+    for (rssOutNode <- rssOutNodes) {
+      val url = (rssOutNode \ "@xmlUrl").text 
+      Future{ createOrUpdateFeed(url) }
+    }
+  }
 }
 

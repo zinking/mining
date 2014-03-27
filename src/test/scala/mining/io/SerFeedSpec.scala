@@ -6,23 +6,23 @@ import org.junit.runner.RunWith
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
-import mining.parser.RSSFeed
 import org.scalatest.junit.JUnitRunner
 import mining.io.ser.SerFeedWriter
 import mining.io.ser.SerFeedReader
+import mining.io.ser.SerFeedManager
 
 @RunWith(classOf[JUnitRunner])
 class SerFeedSpec extends FunSuite 
 			      with ShouldMatchers 
 			      with BeforeAndAfterAll 
 			      with FeedTestPrepare {
+
   override def beforeAll = {
     prepareFolders()
   }
 
   test("Ser feed write should be able to write rss items to file system") {
-    val fd1 = FeedDescriptor("http://coolshell.cn/feed")
-    val feed = RSSFeed(fd1) 
+    val feed = RSSFeed(Feed("http://coolshell.cn/feed"))
     feed.syncFeed()
     val serWriter = SerFeedWriter(feed)
     
@@ -37,10 +37,9 @@ class SerFeedSpec extends FunSuite
   }
   
   test("Ser feed reader should be able to read rss items according to feed descriptor") {
-    val fd = FeedDescriptor("http://coolshell.cn/feed") 
-    val serReader = SerFeedReader(fd)
+    val serReader = SerFeedReader(Feed("http://coolshell.cn/feed"))
     val rssFeed = serReader.read()
     
-    rssFeed.rssItems.size should (be > 10)
+    rssFeed.stories.size should (be > 10)
   }
 }
