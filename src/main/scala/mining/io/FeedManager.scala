@@ -31,7 +31,7 @@ trait FeedManager {
   def createOrGetFeedDescriptor(url: String): Feed = {
     loadFeedFromUrl(url) match {
       case None => {
-        val feed = Feed(url)
+        val feed = FeedFactory.newFeed(url) 
         feedsMap += UrlUtil.urlToUid(url) -> feed
         saveFeed(feed)
       }
