@@ -24,6 +24,6 @@ case class Feed(val url: String,
 }
 
 object FeedFactory {
-  def newFeed(url: String) = new Feed(url, 0L, "", new Date(0), "", "UTF-9")
+  def newFeed(url: String) = new Feed(url, 0L, "", new Date(0), "", "UTF-8")
 }
 
