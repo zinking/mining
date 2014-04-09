@@ -28,7 +28,7 @@ object StoryFactory {
           DateUtil.getSqlDate(synd.getPublishedDate()), 
           DateUtil.getSqlDate(synd.getUpdatedDate()),
           synd.getAuthor(), 
-          synd.getDescription().getValue(), 
+          if (synd.getDescription() != null) synd.getDescription().getValue() else "", 
           getSyndContent(synd)
           ) 
           
