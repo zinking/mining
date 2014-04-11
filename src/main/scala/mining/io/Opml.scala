@@ -4,6 +4,9 @@ import java.sql.Date
 import scala.xml._
 import mining.util.DirectoryUtil
 import scala.collection.mutable.ListBuffer
+import java.sql.Blob
+import java.io.InputStreamReader
+import javax.sql.rowset.serial.SerialBlob
 
 
 
@@ -33,6 +36,15 @@ object OpmlOutline{
   }
 }
 
+case class OpmlStorage(
+    id:String,
+    raw:Blob
+){
+    def toOpml():Opml={
+      Opml( id, XML.load( new InputStreamReader(raw.getBinaryStream)) )
+    }
+}
+
 case class Opml(
     id:String,
     outline:List[OpmlOutline]
@@ -48,6 +60,11 @@ case class Opml(
 		    </body>
     	</opml>
     }
+   
+   def toStorage():OpmlStorage = {
+     new OpmlStorage(id, new SerialBlob( toXml.toString.getBytes("UTF-8") ) )
+   }
+   
 }
 
 object Opml{
