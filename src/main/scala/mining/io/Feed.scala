@@ -17,6 +17,8 @@ case class Feed(val url: String,
                 var encoding: String) {
   
   def uid = UrlUtil.urlToUid(url)
+  
+  var outline = OpmlOutline.empty()
 
   def filePath =  DirectoryUtil.pathFromPaths(System.getProperty("mining.ser.path"), uid + ".ser")
   

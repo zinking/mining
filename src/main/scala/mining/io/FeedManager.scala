@@ -4,8 +4,8 @@ import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.xml.Elem
-
 import mining.util.UrlUtil
+import mining.parser.FeedParser
 
 trait FeedManager {
   
@@ -25,7 +25,7 @@ trait FeedManager {
   def loadFeeds(): mutable.Map[String, Feed]
   
   /** Create a new feed if the UID of the URL doesn't exist. Sync and persist after that */
-  def createOrUpdateFeed(url: String): RSSFeed 
+  def createOrUpdateFeed(url: String): FeedParser 
   
   /** Create a new feed descriptor if it doesn't exist. Also sync to ser file. */
   def createOrGetFeedDescriptor(url: String): Feed = {

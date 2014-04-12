@@ -10,6 +10,7 @@ import org.scalatest.junit.JUnitRunner
 import mining.io.ser.SerFeedWriter
 import mining.io.ser.SerFeedReader
 import mining.io.ser.SerFeedManager
+import mining.parser.FeedParser
 
 @RunWith(classOf[JUnitRunner])
 class SerFeedSpec extends FunSuite 
@@ -22,7 +23,7 @@ class SerFeedSpec extends FunSuite
   }
 
   test("Ser feed write should be able to write rss items to file system") {
-    val feed = RSSFeed(FeedFactory.newFeed("http://coolshell.cn/feed"))
+    val feed = FeedParser(FeedFactory.newFeed("http://coolshell.cn/feed"))
     feed.syncFeed()
     val serWriter = SerFeedWriter(feed)
     

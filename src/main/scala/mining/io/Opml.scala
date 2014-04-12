@@ -34,6 +34,14 @@ object OpmlOutline{
         (node\"@type").toString, (node\"@text").toString, (node\"@htmlUrl").toString
     )
   }
+  
+  def apply( title:String, xmlUrl:String, outType:String, text:String, htmlUrl:String )={
+    new OpmlOutline(List[OpmlOutline](), title,xmlUrl,outType,text,htmlUrl)
+  }
+  
+  def empty():OpmlOutline={
+    new OpmlOutline(List[OpmlOutline](), "","","","","")
+  }
 }
 
 case class OpmlStorage(
@@ -41,7 +49,7 @@ case class OpmlStorage(
     raw:Blob
 ){
     def toOpml():Opml={
-      Opml( id, XML.load( new InputStreamReader(raw.getBinaryStream)) )
+      Opml( id, XML.load( new InputStreamReader(raw.getBinaryStream,"UTF-8")) )
     }
 }
 

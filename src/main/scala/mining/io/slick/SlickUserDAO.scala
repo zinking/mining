@@ -27,13 +27,27 @@ class SlickUserDAO(override val profile: JdbcProfile) extends SlickDBConnection(
   }
   
   def saveOpml( uo:Opml) = database withSession { implicit session =>
+    saveOpmlStorage(uo.toStorage )
+  }
+  
+  def saveOpmlStorage( uo:OpmlStorage) = database withSession { implicit session =>
    val r1 =  opmls.filter( _.userId === uo.id ).firstOption
    r1 match{
-     case Some(uoo) => opmls.update( uo.toStorage )
-     case None => opmls.insert(uo.toStorage)
+     case Some(uoo) => opmls.update( uo )
+     case None => opmls.insert(uo)
    }
   }
-
+  
+  def addOmplOutline( uid:String, ol:OpmlOutline ) = database withSession { implicit session =>
+   val r1 =  opmls.filter( _.userId === uid ).firstOption
+   r1 match{
+     case Some(uoo) => {
+       val newopml = Opml( uid, uoo.toOpml.outline :+ ol )
+       opmls.update(newopml.toStorage)
+     }
+     case None => ???
+   }
+  }
 
 
   class UserOpml(tag: Tag) extends Table[OpmlStorage](tag, "USER_OPML") {

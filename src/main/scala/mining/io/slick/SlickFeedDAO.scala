@@ -9,6 +9,7 @@ import mining.io.Feed
 import mining.io.Feed
 import mining.io.Story
 import mining.util.UrlUtil
+import mining.parser.FeedParser
 
 class SlickFeedDAO(override val profile: JdbcProfile) extends SlickDBConnection(profile) with FeedManager {
   import profile.simple._
@@ -40,7 +41,7 @@ class SlickFeedDAO(override val profile: JdbcProfile) extends SlickDBConnection(
     }
   }
   
-  override def createOrUpdateFeed(url: String) = ???
+  override def createOrUpdateFeed(url: String):FeedParser = ???
 
   class FeedSource(tag: Tag) extends Table[Feed](tag, "FEED_SOURCE") {
     def feedId = column[Long]("FEED_ID", O.PrimaryKey, O.AutoInc)

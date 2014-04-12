@@ -11,11 +11,11 @@ import scala.xml.Elem
 import java.nio.file.FileSystems
 import mining.io.Feed
 import mining.io.FeedManager
-import mining.io.RSSFeed
 import mining.util.DirectoryUtil
 import mining.util.UrlUtil
 import java.util.concurrent.atomic.AtomicInteger
 import mining.io.Feed
+import mining.parser.FeedParser
 
 class SerFeedManager extends FeedManager {
 
@@ -64,7 +64,7 @@ class SerFeedManager extends FeedManager {
     map
   }
   
-  override def createOrUpdateFeed(url: String): RSSFeed = {
+  override def createOrUpdateFeed(url: String): FeedParser = {
     val fd = createOrGetFeedDescriptor(url)
     val rssFeed = SerFeedReader(fd).read()
     rssFeed.syncFeed()

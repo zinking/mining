@@ -1,12 +1,12 @@
 package mining.io.ser
 
 import mining.io.FeedWriter
-import mining.io.RSSFeed
 import java.io.FileOutputStream
 import java.io.ObjectOutputStream
 import org.slf4j.LoggerFactory
+import mining.parser.FeedParser
 
-class SerFeedWriter(val rssFeed: RSSFeed) extends FeedWriter {
+class SerFeedWriter(val rssFeed: FeedParser) extends FeedWriter {
   
   private val logger = LoggerFactory.getLogger(classOf[SerFeedWriter])
 
@@ -29,5 +29,5 @@ class SerFeedWriter(val rssFeed: RSSFeed) extends FeedWriter {
 }
 
 object SerFeedWriter {
-  def apply(rssFeed: RSSFeed) = new SerFeedWriter(rssFeed)
+  def apply(rssFeed: FeedParser) = new SerFeedWriter(rssFeed)
 }

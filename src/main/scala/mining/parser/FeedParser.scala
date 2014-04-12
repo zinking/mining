@@ -8,19 +8,31 @@ import com.sun.syndication.feed.synd.SyndFeed
 import org.slf4j.LoggerFactory
 import java.io.StringReader
 import scala.collection.JavaConverters._
+import scala.collection.mutable
 import com.sun.syndication.feed.synd.SyndEntry
 import mining.io.Story
 import mining.io.StoryFactory
+import mining.io.OpmlOutline
 
-class Parser(val feed: Feed) {
-  private val logger = LoggerFactory.getLogger(classOf[Parser])
+class FeedParser(val feed: Feed) {   
+  private val logger = LoggerFactory.getLogger(classOf[FeedParser])
   
   val url = feed.url
+  
+  val stories = mutable.ListBuffer.empty[Story]
+  
+  def addFeedEntries(entries: Iterable[Story]) = stories ++= entries
+   
+  override def toString = s"Feed($url)"
   
    /** Sync latest feeds */
   def syncFeed(): Iterable[Story]= { 
     val content = Spider().getFeedContent(feed) 
     val newSyndFeed = syndFeedFromXML(content)
+    
+    /*title,xmlUrl,outType,text,htmlUrl*/
+    feed.outline = OpmlOutline( newSyndFeed.getTitle(), url, newSyndFeed.getFeedType(), 
+        newSyndFeed.getDescription(), newSyndFeed.getLink() )
     
     val newEntries = newSyndFeed.getEntries().asScala.map(_.asInstanceOf[SyndEntry])
     val newStories = newEntries.map(StoryFactory.fromSyndFeed(_, feed)).takeWhile(_.link != feed.lastUrl)
@@ -30,7 +42,7 @@ class Parser(val feed: Feed) {
       case None => 
     } 
 
-    newStories
+    stories ++= newStories
   }
 
   protected def syndFeedFromXML(feedXML: String): SyndFeed = {
@@ -51,6 +63,6 @@ class Parser(val feed: Feed) {
 
 }
 
-object Parser {
-  def apply(feed: Feed) = new Parser(feed)
+object FeedParser {
+  def apply(feed: Feed) = new FeedParser(feed)
 }
