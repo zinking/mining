@@ -10,6 +10,7 @@ import mining.io.Feed
 import mining.io.Story
 import mining.util.UrlUtil
 import mining.parser.FeedParser
+import mining.io.Opml
 
 class SlickFeedDAO(override val profile: JdbcProfile) extends SlickDBConnection(profile) with FeedManager {
   import profile.simple._
@@ -36,12 +37,44 @@ class SlickFeedDAO(override val profile: JdbcProfile) extends SlickDBConnection(
     database withTransaction { implicit session =>
       feed.feedId match {
         case 0L => feed.feedId = (feeds returning feeds.map(_.feedId)) += feed
-        case _ => feeds.filter(_.feedId == feed.feedId).update(feed)
+        case _ => feeds.filter(_.feedId === feed.feedId).update(feed)
       }
     }
   }
   
   override def createOrUpdateFeed(url: String):FeedParser = ???
+  
+  
+  def getOpmlStories( opml:Opml ):List[Story] = {
+    database withTransaction { implicit session =>
+	    opml.allFeeds.foldLeft[List[Story]]( List[Story]() )(( acc, node ) =>{
+	       //val ss = stories.where( _.feedId === UrlUtil.urlToUid(node.xmlUrl) ).take(10) ???
+	       //TODO: FEEDID FK need to be adapted , why long though?
+	      val ss = stories.where( _.feedId === 0l ).take(10)
+	       //val ss = stories.list.take(10)
+	       acc ++ ss.buildColl
+	     })
+    }
+  }
+  
+  def getFeedStories( feed:String ):List[Story] = {
+    database withTransaction { implicit session =>
+      	//TODO: same as before
+	    stories.filter( _.feedId === 0l ).drop(0).take(10).buildColl
+    }
+  }
+  
+  def getStoryById( storyId:String ):Story = {
+    database withTransaction { implicit session =>
+      stories.filter( _.link === storyId ).first
+    }
+  }
+  
+  def getStoryContentById( storyId:String ):String = {
+    database withTransaction { implicit session =>
+      stories.filter( _.link === storyId ).first.content
+    }
+  }
 
   class FeedSource(tag: Tag) extends Table[Feed](tag, "FEED_SOURCE") {
     def feedId = column[Long]("FEED_ID", O.PrimaryKey, O.AutoInc)

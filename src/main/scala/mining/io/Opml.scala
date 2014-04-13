@@ -24,6 +24,28 @@ case class OpmlOutline(
 	    for { o <- outline  } yield o.toXml
 	 }</outline>
    }
+   
+   def containFeed( fd:Feed ):Boolean = {
+     if( outline.length > 0 ){
+       for (
+         o <- outline
+         if o.containFeed(fd)
+       ){
+         return true
+       }
+       return false
+     }
+     else{
+       return xmlUrl == fd.url
+     }
+   }
+   
+   def allFeeds:List[OpmlOutline] = {
+     if ( outline.length > 0){
+       return outline
+     }
+     return this::Nil
+   }
 }
 
 
@@ -71,6 +93,23 @@ case class Opml(
    
    def toStorage():OpmlStorage = {
      new OpmlStorage(id, new SerialBlob( toXml.toString.getBytes("UTF-8") ) )
+   }
+   
+   def containFeed( fd:Feed ):Boolean = {
+     for{
+       o <- outline
+       if o.containFeed( fd )
+     }{
+       return true
+     }
+     
+     return false
+   }
+   
+   def allFeeds:List[OpmlOutline]={
+     outline.foldLeft[List[OpmlOutline]]( List[OpmlOutline]() )(( acc, node ) =>{
+       acc ++ node.allFeeds
+     })
    }
    
 }
