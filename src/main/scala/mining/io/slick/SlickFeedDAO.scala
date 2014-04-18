@@ -1,16 +1,14 @@
 package mining.io.slick
 
-import scala.slick.driver.JdbcProfile
-import java.sql.Date
-import scala.xml.Elem
-import mining.io.FeedManager
+import java.sql.Timestamp
+import java.util.Date
+
 import scala.collection.mutable
-import mining.io.Feed
-import mining.io.Feed
-import mining.io.Story
-import mining.util.UrlUtil
+import scala.slick.driver.JdbcProfile
+
+import mining.io._
 import mining.parser.FeedParser
-import mining.io.Opml
+import mining.util.UrlUtil
 
 class SlickFeedDAO(override val profile: JdbcProfile) extends SlickDBConnection(profile) with FeedManager {
   import profile.simple._
@@ -33,14 +31,13 @@ class SlickFeedDAO(override val profile: JdbcProfile) extends SlickDBConnection(
     map
   }
   
-  override def saveFeed(feed: Feed) = {
-    database withTransaction { implicit session =>
-      feed.feedId match {
-        case 0L => feed.feedId = (feeds returning feeds.map(_.feedId)) += feed
-        case _ => feeds.filter(_.feedId === feed.feedId).update(feed)
-      }
+  override def saveFeed(feed: Feed) = database withTransaction { implicit session =>
+    feed.feedId match {
+      case 0L => feed.feedId = (feeds returning feeds.map(_.feedId)) += feed
+      case _  => feeds.filter(_.feedId === feed.feedId).update(feed)
     }
   }
+  
   
   override def createOrUpdateFeed(url: String):FeedParser = ???
   
@@ -75,6 +72,12 @@ class SlickFeedDAO(override val profile: JdbcProfile) extends SlickDBConnection(
       stories.filter( _.link === storyId ).first.content
     }
   }
+  
+  //Implicitly map j.u.Date to Timestamp for the following column definitions
+  implicit val dateTime = MappedColumnType.base[Date, Timestamp](
+    dt => new Timestamp(dt.getTime),
+    ts => new Date(ts.getTime)
+  )
 
   class FeedSource(tag: Tag) extends Table[Feed](tag, "FEED_SOURCE") {
     def feedId = column[Long]("FEED_ID", O.PrimaryKey, O.AutoInc)
@@ -106,4 +109,6 @@ class SlickFeedDAO(override val profile: JdbcProfile) extends SlickDBConnection(
 
 object SlickFeedDAO {
   def apply(profile: JdbcProfile) = new SlickFeedDAO(profile)
+  
+  
 }

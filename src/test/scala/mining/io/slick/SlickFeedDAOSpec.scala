@@ -41,7 +41,7 @@ class SlickFeedDAOSpec extends FunSuite
   test("Update existing feed should be able to update the old entry") {
     val feed = feedDAO.loadFeedFromUrl(url1).get
     val testUrl = """http://test"""
-    val testTime = new java.sql.Date(new Date().getTime())
+    val testTime = new Date
     feed.lastUrl = testUrl
     feed.checked = testTime 
 

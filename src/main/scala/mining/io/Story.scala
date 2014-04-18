@@ -1,6 +1,6 @@
 package mining.io
 
-import java.sql.Date
+import java.util.Date
 import com.sun.syndication.feed.synd.SyndEntry
 import mining.util.DateUtil
 import scala.collection.JavaConverters._
