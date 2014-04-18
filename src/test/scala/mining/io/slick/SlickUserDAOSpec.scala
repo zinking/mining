@@ -10,12 +10,13 @@ import mining.util.UrlUtil
 import java.util.Date
 import scala.xml.Elem
 import mining.io.Opml
+import scala.util.Properties
 
 @RunWith(classOf[JUnitRunner])
 class SlickUserDAOSpec extends FunSuite 
 			           with ShouldMatchers 
 			           with BeforeAndAfterAll {
-  System.setProperty("runMode", "test")
+  Properties.setProp("runMode", "test")
 
   val userDAO = SlickUserDAO(H2Driver)
   val userID = "user1"

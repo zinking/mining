@@ -8,6 +8,7 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.Date
 import mining.util.DateUtil
+import java.sql.Timestamp
 
 object Spider {
   
@@ -83,7 +84,7 @@ class Spider {
 	      case _ =>
 	    }
 	    
-	    feed.checked = new java.sql.Date(new Date().getTime())
+	    feed.checked = new Date()
 	    
 	    //if ETag [some hash like c7f731d5d3dce2e82282450c4fcae4d6 ] didn't change, then content didn't change
 	    responseHeadersMap.get("ETag") match{

@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory
 object EnvUtil {
   val logger = LoggerFactory.getLogger(getClass())
 
-  def runMode = Properties.envOrElse("runMode", "prod")
+  def runMode = Properties.propOrElse("runMode", "prod")
   
   def configs = {
     val mode = runMode

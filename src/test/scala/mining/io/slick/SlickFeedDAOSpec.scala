@@ -8,12 +8,14 @@ import org.scalatest.junit.JUnitRunner
 import scala.slick.driver.H2Driver
 import mining.util.UrlUtil
 import java.util.Date
+import scala.util.Properties
+import java.sql.Timestamp
 
 @RunWith(classOf[JUnitRunner])
 class SlickFeedDAOSpec extends FunSuite 
 			           with ShouldMatchers 
 			           with BeforeAndAfterAll {
-  System.setProperty("runMode", "test")
+  Properties.setProp("runMode", "test")
 
   val feedDAO = SlickFeedDAO(H2Driver)
   val url1 = "http://coolshell.cn/feed"
@@ -43,7 +45,7 @@ class SlickFeedDAOSpec extends FunSuite
     val testUrl = """http://test"""
     val testTime = new Date
     feed.lastUrl = testUrl
-    feed.checked = testTime 
+    feed.checked = new Timestamp(testTime.getTime()) 
 
     feedDAO.saveFeed(feed)
     val updatedFeed = feedDAO.loadFeeds().get(UrlUtil.urlToUid(url1)).get

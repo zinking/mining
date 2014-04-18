@@ -38,9 +38,7 @@ class SlickFeedDAO(override val profile: JdbcProfile) extends SlickDBConnection(
     }
   }
   
-  
-  override def createOrUpdateFeed(url: String):FeedParser = ???
-  
+  override def createOrUpdateFeed(url: String): FeedParser = ???
   
   def getOpmlStories( opml:Opml ):List[Story] = {
     database withTransaction { implicit session =>
@@ -74,7 +72,7 @@ class SlickFeedDAO(override val profile: JdbcProfile) extends SlickDBConnection(
   }
   
   //Implicitly map j.u.Date to Timestamp for the following column definitions
-  implicit val dateTime = MappedColumnType.base[Date, Timestamp](
+  implicit def dateTime = MappedColumnType.base[Date, Timestamp](
     dt => new Timestamp(dt.getTime),
     ts => new Date(ts.getTime)
   )

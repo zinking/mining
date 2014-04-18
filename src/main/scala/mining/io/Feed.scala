@@ -1,12 +1,11 @@
 package mining.io
 
 import java.util.Date
-
 import mining.util.DirectoryUtil
 import mining.util.UrlUtil
 
 /**
- * It's allowed to use URL only as constructor, majorly to facilitate testing. 
+ * It's allowed to use URL only as constructor to facilitate testing. 
  * But in real world the feed descriptor should be retrieved from FeedManager, to keep it in sync.
  */
 case class Feed(val url: String,
