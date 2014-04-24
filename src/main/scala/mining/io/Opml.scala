@@ -1,14 +1,13 @@
 package mining.io
 
-import java.sql.Date
-import scala.xml._
-import mining.util.DirectoryUtil
-import scala.collection.mutable.ListBuffer
-import java.sql.Blob
 import java.io.InputStreamReader
+import java.sql.Blob
+
+import scala.xml.Elem
+import scala.xml.Node
+import scala.xml.XML
+
 import javax.sql.rowset.serial.SerialBlob
-
-
 
 case class OpmlOutline(
     outline:List[OpmlOutline], 
@@ -129,8 +128,3 @@ object Opml{
     new Opml( id,  result)
   }	
 }
-
-
-
-    
-    

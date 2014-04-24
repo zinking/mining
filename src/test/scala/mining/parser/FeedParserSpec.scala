@@ -1,67 +1,53 @@
 package mining.parser
 
 import org.junit.runner.RunWith
-import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
-import mining.io.ser.SerFeedManager
-import scalaj.http.Http
-import mining.io.Feed
+
 import mining.io.FeedFactory
+import scalaj.http.Http
 
 @RunWith(classOf[JUnitRunner])
 class FeedParserSpec extends FunSuite 
                      with ShouldMatchers {
   
-  val feedManager = SerFeedManager()
   test("Parser should be able to parse letitcrash RSS") {
     val url = "http://letitcrash.com/rss"
     val feed = FeedParser(FeedFactory.newFeed(url))
-    feed.syncFeed
-    val rssItemSize = feed.stories.size
-    rssItemSize should (be > 10)
+    feed.syncFeed.size should (be >= 10)
   }
   
   test("Parser should be able to parse cppblog RSS UTF8 encoding") {
     val url = "http://www.cppblog.com/7words/Rss.aspx"
     val feed = FeedParser(FeedFactory.newFeed(url))
-    feed.syncFeed
-    val rssItemSize = feed.stories.size
-    rssItemSize should (be >= 10)
+    feed.syncFeed.size should (be >= 10)
   }
 
   
   test("Parser should be able to parse smth RSS GB2312 encoding") {
     val url = "http://www.newsmth.net/nForum/rss/topten"
     val feed = FeedParser(FeedFactory.newFeed(url))
-    feed.syncFeed
-    val rssItemSize = feed.stories.size
-    rssItemSize should (be >= 10)
+    feed.syncFeed.size should (be >= 10)
   }
   
   test("Parser return 0 if nothing returned or timeout") {
     val url = "http://great-way1.appspot.com/"
     val feed = FeedParser(FeedFactory.newFeed(url))
-    feed.syncFeed()
-
-    val rssItemSize = feed.stories.size  
-
-    rssItemSize should equal (0)
+    feed.syncFeed.size should be (0)
   }
   
   test("Parse coolshell RSS should work well for Chinese") {
     val url = "http://coolshell.cn/feed"
     val feed = FeedParser(FeedFactory.newFeed(url))
-    feed.syncFeed()
-    feed.stories.size should (be > 10)
+    feed.syncFeed.size should (be >= 10)
   }
   
   test("RSS SyndEntry should be sorted as reversed time order") {
     val url = "http://coolshell.cn/feed"
     val feed = FeedParser(FeedFactory.newFeed(url))
-    feed.syncFeed()
-    
-    feed.stories.head.published.after(feed.stories.tail.head.published) should be (true)
+    val stories = feed.syncFeed
+    stories.head.published.after(stories.tail.head.published) should be (true)
   }
   
   test("if the rss feed haven't been changed then no need to parse again") {

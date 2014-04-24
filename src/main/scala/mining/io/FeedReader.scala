@@ -3,8 +3,8 @@ package mining.io
 import mining.parser.FeedParser
 
 trait FeedReader {
-  def feedDescriptor: Feed
-  
-  def read(): FeedParser 
+
+  /** Read a certain number of stories from the feed */
+  def read(feed: Feed, count: Int = Int.MaxValue): Iterable[Story] 
 }
 

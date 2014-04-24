@@ -10,6 +10,8 @@ import mining.util.UrlUtil
 import java.util.Date
 import scala.util.Properties
 import java.sql.Timestamp
+import mining.util.DirectoryUtil
+import scala.xml.XML
 
 @RunWith(classOf[JUnitRunner])
 class SlickFeedDAOSpec extends FunSuite 
@@ -33,23 +35,46 @@ class SlickFeedDAOSpec extends FunSuite
     feed2.feedId should be (2)
   }
   
-  test("Load all feeds from db should be able to get correct feeds") {
+  test("Load all feeds and load feed from URL/UID method should get the correct feed") {
     val feedsMap = feedDAO.loadFeeds()
     feedsMap.values.size should be (2)
-    feedsMap.get(UrlUtil.urlToUid(url1)).get.feedId should be (1)
-    feedsMap.get(UrlUtil.urlToUid(url2)).get.url should be (url2)
+    feedsMap.get(UrlUtil.urlToUid(url1)).get.url should be (url1)
+    feedDAO.loadFeedFromUrl(url1).get.feedId should be (1)
+    feedDAO.loadFeedFromUid(UrlUtil.urlToUid(url2)).get.feedId should be (2)
   }
   
-  test("Update existing feed should be able to update the old entry") {
+  test("Write feed method should be able to persist changes") {
     val feed = feedDAO.loadFeedFromUrl(url1).get
     val testUrl = """http://test"""
     val testTime = new Date
     feed.lastUrl = testUrl
-    feed.checked = new Timestamp(testTime.getTime()) 
+    feed.checked = testTime
 
-    feedDAO.saveFeed(feed)
-    val updatedFeed = feedDAO.loadFeeds().get(UrlUtil.urlToUid(url1)).get
+    feedDAO.write(feed)
+    val updatedFeed = feedDAO.loadFeeds.get(UrlUtil.urlToUid(url1)).get
     updatedFeed.checked should be (testTime)
     updatedFeed.lastUrl should be (testUrl)
+  }
+  
+  test("Create or update feed method should be able to sync and persist the feed/stories") {
+    val feed = feedDAO.createOrUpdateFeed(url2)
+    feed.unsavedStories.size should be (0) 
+    feed.checked should be > (new Date(0))
+    feed.lastUrl should not be ("")
+  }
+  
+  test("Read method should be able to read those stories just persisted") {
+    val feed = feedDAO.loadFeedFromUrl(url2).get
+    val stories = feedDAO.read(feed)
+    stories.size should be > (10)
+  }
+  
+  test("FeedManager should be able to parse opml format") {
+    val tmpPath = DirectoryUtil.pathFromProject("config", "zhen_opml.xml")
+    val xml = XML.loadFile(tmpPath)
+    feedDAO.createOrUpdateFeedOPML(xml)
+    
+    Thread.sleep(5000)
+    feedDAO.feedsMap.size should be > (5)
   }
 }

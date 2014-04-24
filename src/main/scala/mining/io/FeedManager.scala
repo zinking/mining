@@ -4,16 +4,13 @@ import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.xml.Elem
-import mining.util.UrlUtil
-import mining.parser.FeedParser
 
-trait FeedManager {
+import mining.util.UrlUtil
+
+trait FeedManager extends FeedReader with FeedWriter {
   
   /** Map from Feed UID to Feed Descriptor */
   def feedsMap: mutable.Map[String, Feed]
-  
-  /** Persist current feed descriptors */
-  def saveFeed(feed: Feed)
   
   /** Get the descriptor from feed URL */
   def loadFeedFromUrl(url: String): Option[Feed] = feedsMap.get(UrlUtil.urlToUid(url))
@@ -25,15 +22,15 @@ trait FeedManager {
   def loadFeeds(): mutable.Map[String, Feed]
   
   /** Create a new feed if the UID of the URL doesn't exist. Sync and persist after that */
-  def createOrUpdateFeed(url: String): FeedParser 
+  def createOrUpdateFeed(url: String): Feed 
   
-  /** Create a new feed descriptor if it doesn't exist. Also sync to ser file. */
+  /** Create a new feed descriptor if it doesn't exist. */
   def createOrGetFeedDescriptor(url: String): Feed = {
     loadFeedFromUrl(url) match {
       case None => {
         val feed = FeedFactory.newFeed(url) 
         feedsMap += UrlUtil.urlToUid(url) -> feed
-        saveFeed(feed)
+        write(feed)
       }
       case _ =>
     }

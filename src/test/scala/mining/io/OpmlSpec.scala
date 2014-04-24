@@ -1,16 +1,12 @@
 package mining.io
 
-import java.io.File
-import java.nio.file.FileSystems
+import scala.xml._
+
+import org.junit.runner.RunWith
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
-import org.scalatest.matchers.ShouldMatchers
-import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import mining.io.ser.SerFeedManager
-import mining.io.ser.SerFeedReader
-import scala.xml._
-import mining.util.DirectoryUtil
+import org.scalatest.matchers.ShouldMatchers
 
 
 @RunWith(classOf[JUnitRunner])
@@ -27,7 +23,7 @@ class OpmlSpec extends FunSuite
 	<opml version="1.0">
 		<head><title>Sample</title></head>
 		<body>
-			<outline text="We need more¡­¡­" title="We need more¡­¡­" type="rss"
+			<outline text="We need more..." title="We need more..." type="rss"
 				xmlUrl="http://blog.csdn.net/zhuliting/rss/list" htmlUrl="http://blog.csdn.net/zhuliting"/>
 			<outline title="FlexBlogs" text="FlexBlogs">
 				<outline text="AdobeAll-Bee" title="AdobeAll-Bee" type="rss"
@@ -50,7 +46,4 @@ class OpmlSpec extends FunSuite
 	 (dom2\"outline").length should be (1)
 	 (dom2\"outline"\"@title").toString should be ("AdobeAll-Bee")
   }
-  
-  
-  
 }

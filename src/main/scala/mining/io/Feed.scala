@@ -1,8 +1,9 @@
 package mining.io
 
 import java.util.Date
-import mining.util.DirectoryUtil
 import mining.util.UrlUtil
+import mining.parser.FeedParser
+import scala.collection.mutable
 
 /**
  * It's allowed to use URL only as constructor to facilitate testing. 
@@ -14,12 +15,19 @@ case class Feed(val url: String,
                 var checked: Date,
                 var lastUrl: String,
                 var encoding: String) {
-  
-  def uid = UrlUtil.urlToUid(url)
-  
+  /** OPML outline for the feed */
   var outline = OpmlOutline.empty()
 
-  def filePath =  DirectoryUtil.pathFromPaths(System.getProperty("mining.ser.path"), uid + ".ser")
+  /** Stories sync from RSS but not persisted yet */
+  val unsavedStories = mutable.ListBuffer.empty[Story]
+
+  /** Sync new stories from RSS feed */
+  def sync() = this.synchronized {
+    unsavedStories ++= FeedParser(this).syncFeed()
+  }
+  
+  /** Unique id generated from the feed URL */
+  def uid = UrlUtil.urlToUid(url)
   
   override def toString = s"FeedDescriptor[$url]"
 }

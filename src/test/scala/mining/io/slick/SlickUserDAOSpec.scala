@@ -30,7 +30,7 @@ class SlickUserDAOSpec extends FunSuite
 	<opml version="1.0">
 		<head><title>Sample</title></head>
 		<body>
-			<outline text="We need more¡­¡­" title="We need more¡­¡­" type="rss"
+			<outline text="We need more..." title="We need more..." type="rss"
 				xmlUrl="http://blog.csdn.net/zhuliting/rss/list" htmlUrl="http://blog.csdn.net/zhuliting"/>
 			<outline title="FlexBlogs" text="FlexBlogs">
 				<outline text="AdobeAll-Bee" title="AdobeAll-Bee" type="rss"
@@ -49,7 +49,7 @@ class SlickUserDAOSpec extends FunSuite
 	
 	opml.id should be ( userID )
 	val o1 = opml.outline.head
-	o1.title should be ("We need more¡­¡­")
+	o1.title should be ("We need more...")
   }
   
   

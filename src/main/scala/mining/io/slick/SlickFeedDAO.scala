@@ -10,7 +10,11 @@ import mining.io._
 import mining.parser.FeedParser
 import mining.util.UrlUtil
 
-class SlickFeedDAO(override val profile: JdbcProfile) extends SlickDBConnection(profile) with FeedManager {
+class SlickFeedDAO(override val profile: JdbcProfile) 
+  extends SlickDBConnection(profile) 
+  with FeedManager
+  with FeedWriter 
+  with FeedReader {
   import profile.simple._
   
   val stories = TableQuery[FeedStory]
@@ -31,16 +35,32 @@ class SlickFeedDAO(override val profile: JdbcProfile) extends SlickDBConnection(
     map
   }
   
-  override def saveFeed(feed: Feed) = database withTransaction { implicit session =>
-    feed.feedId match {
-      case 0L => feed.feedId = (feeds returning feeds.map(_.feedId)) += feed
-      case _  => feeds.filter(_.feedId === feed.feedId).update(feed)
+  override def write(feed: Feed) = database withTransaction { implicit session =>
+    feed.synchronized {
+      //Persist feed info
+      feed.feedId match {
+        case 0L => feed.feedId = (feeds returning feeds.map(_.feedId)) += feed
+        case _  => feeds.filter(_.feedId === feed.feedId).update(feed)
+      }
+      //Persist unsaved stories
+      stories.insertAll(feed.unsavedStories.toSeq: _*)
+      feed.unsavedStories.clear()
     }
   }
   
-  override def createOrUpdateFeed(url: String): FeedParser = ???
+  override def createOrUpdateFeed(url: String): Feed = {
+    val feed = createOrGetFeedDescriptor(url)
+    feed.sync()
+    write(feed) 
+    feed
+  }
+
+  override def read(feed: Feed, count: Int = Int.MaxValue): Iterable[Story] = 
+    database withTransaction { implicit session =>
+      stories.filter(_.feedId === feed.feedId).list.take(count)
+    }
   
-  def getOpmlStories( opml:Opml ):List[Story] = {
+  def getOpmlStories(opml:Opml): List[Story] = {
     database withTransaction { implicit session =>
 	    opml.allFeeds.foldLeft[List[Story]]( List[Story]() )(( acc, node ) =>{
 	       //val ss = stories.where( _.feedId === UrlUtil.urlToUid(node.xmlUrl) ).take(10) ???
@@ -49,13 +69,6 @@ class SlickFeedDAO(override val profile: JdbcProfile) extends SlickDBConnection(
 	       //val ss = stories.list.take(10)
 	       acc ++ ss.buildColl
 	     })
-    }
-  }
-  
-  def getFeedStories( feed:String ):List[Story] = {
-    database withTransaction { implicit session =>
-      	//TODO: same as before
-	    stories.filter( _.feedId === 0l ).drop(0).take(10).buildColl
     }
   }
   
@@ -107,6 +120,5 @@ class SlickFeedDAO(override val profile: JdbcProfile) extends SlickDBConnection(
 
 object SlickFeedDAO {
   def apply(profile: JdbcProfile) = new SlickFeedDAO(profile)
-  
   
 }

@@ -6,7 +6,7 @@ import mining.util.DateUtil
 import scala.collection.JavaConverters._
 import com.sun.syndication.feed.synd.SyndContent
 
-case class Story(val id: Long,
+case class Story(var id: Long,
                  val feedId: Long,
                  val title: String,
                  val link: String,
@@ -21,12 +21,12 @@ case class Story(val id: Long,
 
 object StoryFactory {
   def fromSyndFeed(synd: SyndEntry, feed: Feed): Story = 
-    Story(0L, 
+    Story(0, 
     	  feed.feedId, 
     	  synd.getTitle(), 
     	  synd.getLink(), 
-          DateUtil.getSqlDate(synd.getPublishedDate()), 
-          DateUtil.getSqlDate(synd.getUpdatedDate()),
+          synd.getPublishedDate(), 
+          if (synd.getUpdatedDate() != null) synd.getUpdatedDate() else synd.getPublishedDate(),
           synd.getAuthor(), 
           if (synd.getDescription() != null) synd.getDescription().getValue() else "", 
           getSyndContent(synd)
