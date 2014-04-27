@@ -72,6 +72,13 @@ class SlickFeedDAO(override val profile: JdbcProfile)
     }
   }
   
+  def getFeedStories( feed:String ):List[Story] = {
+    database withTransaction { implicit session =>
+      	//TODO: same as getOpmlStories
+	    stories.filter( _.feedId === 0l ).drop(0).take(10).buildColl
+    }
+  }
+  
   def getStoryById( storyId:String ):Story = {
     database withTransaction { implicit session =>
       stories.filter( _.link === storyId ).first

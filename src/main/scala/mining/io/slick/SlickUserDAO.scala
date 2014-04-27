@@ -20,6 +20,8 @@ class SlickUserDAO(override val profile: JdbcProfile) extends SlickDBConnection(
   def manageDDL() = {
     val tablesMap = SlickUtil.tablesMap(this)
     if (!tablesMap.contains("USER_OPML")) database.withSession(implicit session => opmls.ddl.create)
+    if (!tablesMap.contains("USER_SETTING")) database.withSession(implicit session => userSettings.ddl.create)
+    if (!tablesMap.contains("USER_READSTORY")) database.withSession(implicit session => userReadStories.ddl.create)
   }
   
 
@@ -61,7 +63,7 @@ class SlickUserDAO(override val profile: JdbcProfile) extends SlickDBConnection(
        val newopml = Opml( uid, uoo.toOpml.outline :+ ol )
        opmls.update(newopml.toStorage)
      }
-     case None => ???
+     case None => ???//TODO: boundary conditon handling
    }
   }
   
@@ -90,7 +92,7 @@ class SlickUserDAO(override val profile: JdbcProfile) extends SlickDBConnection(
     def * = (userId, hideEmpty, sort, display ) <> (Setting.tupled, Setting.unapply) 
   }
   
-  class UserReadStory(tag: Tag) extends Table[ReadStory](tag, "USER_SETTING") {
+  class UserReadStory(tag: Tag) extends Table[ReadStory](tag, "USER_READSTORY") {
     def userId    = column[String]("USER_ID", O.PrimaryKey )
     def storyId   = column[String]("STORY_ID")
     def star      = column[String]("STAR")
