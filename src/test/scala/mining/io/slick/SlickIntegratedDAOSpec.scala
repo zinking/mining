@@ -58,7 +58,7 @@ class SlickIntegratedDAOSpec extends FunSuite
   test("Should be able to sync feeds and get its stories") {
     val opml = userDAO.getOpmlById(userId).get 
     feedDAO.createOrUpdateFeedOPML(opml)
-    Thread.sleep(3000) //TODO: Should use future
+    Thread.sleep(5000) //TODO: Should use future
     feedDAO.read(feedDAO.loadFeedFromUrl("http://coolshell.cn/feed").get).size should be > (5)
     feedDAO.getOpmlStories(opml).size should be > (5)
   }

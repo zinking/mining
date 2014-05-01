@@ -27,6 +27,7 @@ class SlickUserDAOSpec extends FunSuite
     userDAO.manageDDL()
   }
   
+
   test("User info should be saved") {
     val user = UserFactory.newUser(userId, "sth@g.com") 
     userDAO.saveUser(user)

@@ -23,28 +23,43 @@ class SlickUserDAO(override val profile: JdbcProfile) extends SlickUserFeedDDL(p
   def setUserStarStory(userId:String, storyId: Long, starred: Boolean): Unit = database withTransaction { implicit session =>
     //implication is that User cannot star a story before reading it
     val userStory = userReadStories.filter(s => (s.userId === userId && s.storyId === storyId)).first
-    userReadStories.update(ReadStory(userStory.userId, userStory.storyId, starred, userStory.read))    
+    userReadStories.update(ReadStory(userStory.userId, userStory.storyId, "", starred, userStory.read))    
   }
   
-  def getUserStarStories(userId: String): List[Story] = database withSession { implicit session =>
+  def setUserStarStoryWithLink(userId:String, link: String, starred: Boolean): Unit = database withTransaction { implicit session =>
+    //implication is that User cannot star a story before reading it
+    val userStory = userReadStories.filter(s => (s.userId === userId && s.storyLink === link)).first
+    userReadStories.update(ReadStory(userStory.userId, 0, link , starred, userStory.read))    
+  }
+  
+  def getUserStarStories(userId: String  , pagesz:Int = 10, pageno:Int = 0): List[Story] = database withSession { implicit session =>
     val query = for {
       user <- userInfo
       userStory <- userReadStories if (user.userId === userStory.userId && userStory.star === true)
       story <- stories if userStory.storyId === story.id
     } yield (story) 
-    query.list
+    query.list.drop( pageno* pagesz ).take(pagesz)
   }
   
   def saveUserReadStory(userId: String, storyId: Long, read: String):Unit = database withSession { implicit session =>
     val uo = userReadStories.filter(s => (s.userId === userId && s.storyId === storyId)).firstOption
     uo match{
-     case Some(uoo) => userReadStories.update(ReadStory(uoo.userId, uoo.storyId, uoo.star, read))   
-     case None      => userReadStories.update(ReadStory(userId, storyId, false, read))  
+     case Some(uoo) => userReadStories.update(ReadStory(uoo.userId, uoo.storyId, "", uoo.star, read))   
+     case None      => userReadStories.update(ReadStory(userId, storyId, "",  false, read))  
+    }
+  }
+  
+  def saveUserReadStoryWithLink(userId: String, link: String, read: String):Unit = database withSession { implicit session =>
+    val uo = userReadStories.filter(s => (s.userId === userId && s.storyLink === link)).firstOption
+    uo match{
+     case Some(uoo) => userReadStories.update(ReadStory(uoo.userId, uoo.storyId, uoo.storyLink, uoo.star, read))   
+     case None      => userReadStories.update(ReadStory(userId, 0, link, false, read))  
     }
   }
 
-  def saveOpml(uo: Opml) = database withTransaction { implicit session =>
-    val opmlStorage = uo.toStorage() 
+  def saveOpml(uo: Opml) = saveOpmlStorage( uo.toStorage )
+      
+  def saveOpmlStorage(opmlStorage: OpmlStorage) = database withTransaction { implicit session =>
     val userStorage = opmls.filter(_.userId === opmlStorage.id).firstOption
     userStorage match {
       case Some(uoo) => opmls.update(opmlStorage)

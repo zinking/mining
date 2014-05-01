@@ -91,11 +91,12 @@ class SlickUserFeedDDL(override val profile: JdbcProfile)
   class UserReadStory(tag: Tag) extends Table[ReadStory](tag, "USER_STORY") {
     def userId    = column[String]("USER_ID", O.PrimaryKey )
     def storyId   = column[Long]("STORY_ID")
+    def storyLink = column[String]("STORY_LINK")
     def star      = column[Boolean]("STAR")
     def read      = column[String]("READ")
 
     def userIdFK = foreignKey("USER_ID_FK", userId, userInfo)(_.userId)
     def userStoryFK = foreignKey("FEED_STORY", storyId, stories)(_.id) 
-    def * = (userId, storyId, star, read ) <> (ReadStory.tupled, ReadStory.unapply) 
+    def * = (userId, storyId,storyLink, star, read ) <> (ReadStory.tupled, ReadStory.unapply) 
   }
 }

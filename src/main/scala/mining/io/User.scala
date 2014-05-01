@@ -9,6 +9,7 @@ case class User(userId: String,
 
 case class ReadStory(userId: String,
                      storyId: Long,
+                     storyLink: String,
                      star: Boolean,
                      read: String
     ){

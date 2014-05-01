@@ -87,9 +87,21 @@ class SlickFeedDAO(override val profile: JdbcProfile)
     }
   }
   
+  def getStoryByLink( sl: String): Story = {
+    database withTransaction { implicit session =>
+      stories.filter( _.link === sl ).first
+    }
+  }
+  
   def getStoryContentById(storyId: String): String = {
     database withTransaction { implicit session =>
       stories.filter( _.link === storyId ).first.content
+    }
+  }
+  
+  def getStoryContentByLink( sl: String): String = {
+    database withTransaction { implicit session =>
+      stories.filter( _.link === sl ).first.content
     }
   }
   
