@@ -2,31 +2,22 @@ package mining.io.slick
 
 import java.sql.Timestamp
 import java.util.Date
-
 import scala.collection.mutable
 import scala.slick.driver.JdbcProfile
-
 import mining.io._
 import mining.parser.FeedParser
 import mining.util.UrlUtil
+import org.slf4j.LoggerFactory
 
 class SlickFeedDAO(override val profile: JdbcProfile) 
-  extends SlickDBConnection(profile) 
+  extends SlickUserFeedDDL(profile) 
   with FeedManager
   with FeedWriter 
   with FeedReader {
   import profile.simple._
   
-  val stories = TableQuery[FeedStory]
+  val logger = LoggerFactory.getLogger(classOf[SlickFeedDAO])
 
-  val feeds = TableQuery[FeedSource]
-  
-  def manageDDL() = {
-    val tablesMap = SlickUtil.tablesMap(this)
-    if (!tablesMap.contains("FEED_SOURCE")) database.withSession(implicit session => feeds.ddl.create)
-    if (!tablesMap.contains("FEED_ENTRY")) database.withSession(implicit session => stories.ddl.create)
-  }
-  
   override lazy val feedsMap = loadFeeds() 
 
   override def loadFeeds() = database withSession { implicit session =>
@@ -43,8 +34,11 @@ class SlickFeedDAO(override val profile: JdbcProfile)
         case _  => feeds.filter(_.feedId === feed.feedId).update(feed)
       }
       //Persist unsaved stories
-      stories.insertAll(feed.unsavedStories.toSeq: _*)
-      feed.unsavedStories.clear()
+      val unsaved = feed.unsavedStories.toSeq
+      if (!unsaved.isEmpty) {
+        val count = stories.insertAll(unsaved: _*)
+        feed.unsavedStories.clear()
+      }
     }
   }
   
@@ -55,79 +49,47 @@ class SlickFeedDAO(override val profile: JdbcProfile)
     feed
   }
 
+  //TODO: Should take the latest stories according to time stamp
   override def read(feed: Feed, count: Int = Int.MaxValue): Iterable[Story] = 
-    database withTransaction { implicit session =>
+    database withSession { implicit session =>
       stories.filter(_.feedId === feed.feedId).list.take(count)
     }
   
-  def getOpmlStories(opml:Opml, pagesz:Int = 10, pageno:Int = 0 ): List[Story] = {
+  def getOpmlStories(opml:Opml, pageSize: Int = 10, pageNo: Int = 0): List[Story] = {
     database withTransaction { implicit session =>
-	    opml.allFeeds.foldLeft[List[Story]]( List[Story]() )(( acc, node ) =>{
-	       //val ss = stories.where( _.feedId === UrlUtil.urlToUid(node.xmlUrl) ).take(10) ???
-	       //TODO: FEEDID FK need to be adapted , why long though?
-	      val fd = feedsMap.get( UrlUtil.urlToUid(node.xmlUrl) ) //TODO: feedsmap is going to consume a lot of memory in the long run
-	      fd match {
-	        case Some( ffd ) => {
-	           val ss = stories.where( _.feedId === ffd.feedId ).drop( pageno* pagesz ).take(pagesz)
-		       //val ss = stories.list.take(10)
-		       acc ++ ss.buildColl
-	        }
-	        case _ => acc
+	  opml.allFeedsUrl.foldLeft(List[Story]())((acc, node) => {
+	    val fd = loadFeedFromUrl(node)
+	    fd match {
+	      case Some(ffd) => {
+	        val ss = stories.where( _.feedId === ffd.feedId).drop(pageSize * pageNo).take(pageSize)
+		    acc ++ ss.buildColl
 	      }
-	      
-	     })
+	      case _ => acc
+	    }
+	  })
     }
   }
   
-  def getFeedStories( xmlUrl:String, pagesz:Int = 10, pageno:Int = 0 ):List[Story] = {
+  def getFeedStories(feedUrl: String, pageSize: Int = 10, pageNo: Int = 0): List[Story] = {
     database withTransaction { implicit session =>
-      	val fd = feedsMap( UrlUtil.urlToUid(xmlUrl) ) //TODO: feedsmap is going to consume a lot of memory in the long run
-	    stories.filter( _.feedId === 0l ).drop( pageno* pagesz ).take(pagesz).buildColl
+      val fd = loadFeedFromUrl(feedUrl)
+      fd match {
+        case Some(feed) => stories.filter(_.feedId === feed.feedId).drop(pageSize * pageSize).take(pageSize).buildColl
+        case None => List.empty[Story]
+      }
     }
   }
   
-  def getStoryById( storyId:String ):Story = {
+  def getStoryById(storyId: String): Story = {
     database withTransaction { implicit session =>
       stories.filter( _.link === storyId ).first
     }
   }
   
-  def getStoryContentById( storyId:String ):String = {
+  def getStoryContentById(storyId: String): String = {
     database withTransaction { implicit session =>
       stories.filter( _.link === storyId ).first.content
     }
-  }
-  
-  //Implicitly map j.u.Date to Timestamp for the following column definitions
-  implicit def dateTime = MappedColumnType.base[Date, Timestamp](
-    dt => new Timestamp(dt.getTime),
-    ts => new Date(ts.getTime)
-  )
-
-  class FeedSource(tag: Tag) extends Table[Feed](tag, "FEED_SOURCE") {
-    def feedId = column[Long]("FEED_ID", O.PrimaryKey, O.AutoInc)
-    def url = column[String]("URL")
-    def lastEtag = column[String]("LAST_ETAG")
-    def checked = column[Date]("CHECKED")
-    def lastUrl = column[String]("LAST_URL")
-    def encoding = column[String]("ENCODING")
-  
-    def * = (url, feedId, lastEtag, checked, lastUrl, encoding) <> (Feed.tupled, Feed.unapply)
-  }    
-
-  class FeedStory(tag: Tag) extends Table[Story](tag, "FEED_STORY") {
-    def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
-    def feedId = column[Long]("FEED_ID")
-    def title = column[String]("TITLE")
-    def link = column[String]("LINK")
-    def published = column[Date]("PUBLISHED")
-    def updated = column[Date]("UPDATED")
-    def author = column[String]("AUTHOR")
-    def description = column[String]("DESCRIPTION")
-    def content = column[String]("CONTENT")
-
-    def feedFK = foreignKey("ENTRY_FK", feedId, feeds)(_.feedId)
-    def * = (id, feedId, title, link, published, updated, author, description, content) <> (Story.tupled, Story.unapply)
   }
   
 }

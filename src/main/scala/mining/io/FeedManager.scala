@@ -38,11 +38,9 @@ trait FeedManager extends FeedReader with FeedWriter {
   }
   
   /** Check all feeds in OPML file */
-  def createOrUpdateFeedOPML(root: Elem) = {
-    val rssOutNodes = root \\ "outline" filter{node => (node \ "@type").text == "rss"}
-    for (rssOutNode <- rssOutNodes) {
-      val url = (rssOutNode \ "@xmlUrl").text 
-      Future{ createOrUpdateFeed(url) }
+  def createOrUpdateFeedOPML(opml: Opml) = {
+    for (url <- opml.allFeedsUrl) {
+      Future{ createOrUpdateFeed(url) } //TODO: This method should return a future for client to know
     }
   }
 }

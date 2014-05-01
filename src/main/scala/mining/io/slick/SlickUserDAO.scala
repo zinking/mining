@@ -1,69 +1,64 @@
 package mining.io.slick
 
-import scala.slick.driver.JdbcProfile
-import java.sql.Date
-import scala.xml.Elem
-import scala.collection.mutable
-import mining.io._
-import mining.util.UrlUtil
 import java.sql.Blob
 
-class SlickUserDAO(override val profile: JdbcProfile) extends SlickDBConnection(profile) {
+import scala.slick.driver.JdbcProfile
+
+import mining.io._
+
+class SlickUserDAO(override val profile: JdbcProfile) extends SlickUserFeedDDL(profile) {
   import profile.simple._
-  
 
-  val opmls = TableQuery[UserOpml]
-  val userSettings = TableQuery[UserSetting]
-  val userReadStories = TableQuery[UserReadStory]
-  
-  
-  def manageDDL() = {
-    val tablesMap = SlickUtil.tablesMap(this)
-    if (!tablesMap.contains("USER_OPML")) database.withSession(implicit session => opmls.ddl.create)
-    if (!tablesMap.contains("USER_SETTING")) database.withSession(implicit session => userSettings.ddl.create)
-    if (!tablesMap.contains("USER_READSTORY")) database.withSession(implicit session => userReadStories.ddl.create)
-  }
-  
+  def saveUser(user: User) = database withTransaction { implicit session => 
+    userInfo.filter(_.userId === user.userId).firstOption match {
+      case Some(user) => userInfo.update(user)
+      case None       => userInfo.insert(user)
+    }
+  } 
 
-  
-  def getOpmlById( id:String ):Option[Opml] = database withSession { implicit session =>
-    val opml1 = opmls.filter( _.userId === id ).firstOption
-    opml1.map( _.toOpml )
+  def getUserById(userId: String): Option[User] = database withSession { implicit session =>
+    userInfo.filter(_.userId === userId).firstOption 
   }
   
-  def getUserStarStories( id:String , pagesz:Int = 10, pageno:Int = 0):List[String] = database withSession { implicit session =>
-    val storyUrls = userReadStories
-        .filter( s => (s.userId === id && s.star === "STAR") )
-        .map( _.storyId ).drop( pageno* pagesz ).take(pagesz)
-    storyUrls.buildColl
-  }
-  
-  def setUserStarStory( uid:String, sid:String, star:String ):Unit = database withSession { implicit session =>
+  def setUserStarStory(userId:String, storyId: Long, starred: Boolean): Unit = database withTransaction { implicit session =>
     //implication is that User cannot star a story before reading it
-    val uo = userReadStories.filter( s => (s.userId === uid && s.storyId === sid ) ).first
-    userReadStories.update( ReadStory(uo.userId, uo.storyId, uo.read, star))    
+    val userStory = userReadStories.filter(s => (s.userId === userId && s.storyId === storyId)).first
+    userReadStories.update(ReadStory(userStory.userId, userStory.storyId, starred, userStory.read))    
   }
   
-  def saveUserReadStory( uid:String, sid:String, read:String):Unit = database withSession { implicit session =>
-    val uo = userReadStories.filter( s => (s.userId === uid && s.storyId === sid ) ).firstOption
+  def getUserStarStories(userId: String): List[Story] = database withSession { implicit session =>
+    val query = for {
+      user <- userInfo
+      userStory <- userReadStories if (user.userId === userStory.userId && userStory.star === true)
+      story <- stories if userStory.storyId === story.id
+    } yield (story) 
+    query.list
+  }
+  
+  def saveUserReadStory(userId: String, storyId: Long, read: String):Unit = database withSession { implicit session =>
+    val uo = userReadStories.filter(s => (s.userId === userId && s.storyId === storyId)).firstOption
     uo match{
-     case Some(uoo) => userReadStories.update( ReadStory(uoo.userId, uoo.storyId, read, uoo.star))   
-     case None => userReadStories.update( ReadStory(uid, sid, read, ""))  
-   }
+     case Some(uoo) => userReadStories.update(ReadStory(uoo.userId, uoo.storyId, uoo.star, read))   
+     case None      => userReadStories.update(ReadStory(userId, storyId, false, read))  
+    }
   }
-  def saveOpml( uo:Opml) = database withSession { implicit session =>
-    saveOpmlStorage(uo.toStorage )
-  }
-  
-  def saveOpmlStorage( uo:OpmlStorage) = database withSession { implicit session =>
-   val r1 =  opmls.filter( _.userId === uo.id ).firstOption
-   r1 match{
-     case Some(uoo) => opmls.update( uo )
-     case None => opmls.insert(uo)
-   }
+
+  def saveOpml(uo: Opml) = database withTransaction { implicit session =>
+    val opmlStorage = uo.toStorage() 
+    val userStorage = opmls.filter(_.userId === opmlStorage.id).firstOption
+    userStorage match {
+      case Some(uoo) => opmls.update(opmlStorage)
+      case None      => opmls.insert(opmlStorage)
+    }
   }
   
-  def addOmplOutline( uid:String, ol:OpmlOutline ) = database withSession { implicit session =>
+  def getOpmlById(userId: String): Option[Opml] = database withSession { implicit session =>
+    val opml1 = opmls.filter(_.userId === userId).firstOption
+    opml1.map(_.toOpml)
+  }
+  
+  //Opml structure should be updated in client side and save the whole Opml here
+  def addOmplOutline(uid: String, ol:OpmlOutline) = database withSession { implicit session =>
    val r1 =  opmls.filter( _.userId === uid ).firstOption
    r1 match{
      case Some(uoo) => {
@@ -76,41 +71,6 @@ class SlickUserDAO(override val profile: JdbcProfile) extends SlickDBConnection(
      }
    }
   }
-  
-  def saveUserSetting( s:Setting) = database withSession { implicit session =>
-   val r1 =  opmls.filter( _.userId === s.userId ).firstOption
-   r1 match{
-     case Some(uoo) => userSettings.update( s )
-     case None => userSettings.insert(s)
-   }
-  }
-
-
-  class UserOpml(tag: Tag) extends Table[OpmlStorage](tag, "USER_OPML") {
-    def userId = column[String]("USER_ID", O.PrimaryKey )
-    def raw    = column[Blob]("RAW")
-  
-    def * = (userId, raw) <> (OpmlStorage.tupled, OpmlStorage.unapply) 
-  }
-  
-  class UserSetting(tag: Tag) extends Table[Setting](tag, "USER_SETTING") {
-    def userId    = column[String]("USER_ID", O.PrimaryKey )
-    def hideEmpty = column[String]("HIDE_EMTPY")
-    def sort = column[String]("SORT")
-    def display = column[String]("DISPLAY")
-
-    def * = (userId, hideEmpty, sort, display ) <> (Setting.tupled, Setting.unapply) 
-  }
-  
-  class UserReadStory(tag: Tag) extends Table[ReadStory](tag, "USER_READSTORY") {
-    def userId    = column[String]("USER_ID", O.PrimaryKey )
-    def storyId   = column[String]("STORY_ID")
-    def star      = column[String]("STAR")
-    def read      = column[String]("READ")
-
-    def * = (userId, storyId, star, read ) <> (ReadStory.tupled, ReadStory.unapply) 
-  }
-
 }
 
 object SlickUserDAO {

@@ -32,7 +32,7 @@ class FeedParser(val feed: Feed) {
         newSyndFeed.getDescription(), newSyndFeed.getLink() )
     
     val newEntries = newSyndFeed.getEntries().asScala.map(_.asInstanceOf[SyndEntry])
-    val newStories = newEntries.toStream.map(StoryFactory.fromSyndFeed(_, feed)).takeWhile(_.link != feed.lastUrl)
+    val newStories = newEntries.map(StoryFactory.fromSyndFeed(_, feed)).takeWhile(_.link != feed.lastUrl)
 
     //Update feed's last story URL
     newStories.headOption match {
