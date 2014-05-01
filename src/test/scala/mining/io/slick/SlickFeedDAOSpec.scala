@@ -12,6 +12,7 @@ import scala.util.Properties
 import java.sql.Timestamp
 import mining.util.DirectoryUtil
 import scala.xml.XML
+import mining.io.Opml
 
 @RunWith(classOf[JUnitRunner])
 class SlickFeedDAOSpec extends FunSuite 
@@ -72,7 +73,8 @@ class SlickFeedDAOSpec extends FunSuite
   test("FeedManager should be able to parse opml format") {
     val tmpPath = DirectoryUtil.pathFromProject("config", "zhen_opml.xml")
     val xml = XML.loadFile(tmpPath)
-    feedDAO.createOrUpdateFeedOPML(xml)
+    val opml = Opml("testOpml", xml)
+    feedDAO.createOrUpdateFeedOPML(opml)
     
     Thread.sleep(5000)
     feedDAO.feedsMap.size should be > (5)

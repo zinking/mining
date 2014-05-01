@@ -7,7 +7,7 @@ import java.sql.Timestamp
 import scala.slick.driver.H2Driver.simple.MappedColumnType
 
 object SlickUtil {
-  def tablesMap(conn: SlickDBConnection): Map[String, MTable] = {
+  def tablesMap(implicit conn: SlickDBConnection): Map[String, MTable] = {
     import conn.profile.simple._
     
     conn.database withSession { implicit session =>
