@@ -60,22 +60,29 @@ class SlickFeedDAO(override val profile: JdbcProfile)
       stories.filter(_.feedId === feed.feedId).list.take(count)
     }
   
-  def getOpmlStories(opml:Opml): List[Story] = {
+  def getOpmlStories(opml:Opml, pagesz:Int = 10, pageno:Int = 0 ): List[Story] = {
     database withTransaction { implicit session =>
 	    opml.allFeeds.foldLeft[List[Story]]( List[Story]() )(( acc, node ) =>{
 	       //val ss = stories.where( _.feedId === UrlUtil.urlToUid(node.xmlUrl) ).take(10) ???
 	       //TODO: FEEDID FK need to be adapted , why long though?
-	      val ss = stories.where( _.feedId === 0l ).take(10)
-	       //val ss = stories.list.take(10)
-	       acc ++ ss.buildColl
+	      val fd = feedsMap.get( UrlUtil.urlToUid(node.xmlUrl) ) //TODO: feedsmap is going to consume a lot of memory in the long run
+	      fd match {
+	        case Some( ffd ) => {
+	           val ss = stories.where( _.feedId === ffd.feedId ).drop( pageno* pagesz ).take(pagesz)
+		       //val ss = stories.list.take(10)
+		       acc ++ ss.buildColl
+	        }
+	        case _ => acc
+	      }
+	      
 	     })
     }
   }
   
-  def getFeedStories( feed:String ):List[Story] = {
+  def getFeedStories( xmlUrl:String, pagesz:Int = 10, pageno:Int = 0 ):List[Story] = {
     database withTransaction { implicit session =>
-      	//TODO: same as getOpmlStories
-	    stories.filter( _.feedId === 0l ).drop(0).take(10).buildColl
+      	val fd = feedsMap( UrlUtil.urlToUid(xmlUrl) ) //TODO: feedsmap is going to consume a lot of memory in the long run
+	    stories.filter( _.feedId === 0l ).drop( pageno* pagesz ).take(pagesz).buildColl
     }
   }
   

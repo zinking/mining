@@ -31,19 +31,26 @@ class SlickUserDAO(override val profile: JdbcProfile) extends SlickDBConnection(
     opml1.map( _.toOpml )
   }
   
-  def getUserStarStories( id:String):List[String] = database withSession { implicit session =>
+  def getUserStarStories( id:String , pagesz:Int = 10, pageno:Int = 0):List[String] = database withSession { implicit session =>
     val storyUrls = userReadStories
         .filter( s => (s.userId === id && s.star === "STAR") )
-        .map( _.storyId )
+        .map( _.storyId ).drop( pageno* pagesz ).take(pagesz)
     storyUrls.buildColl
   }
   
   def setUserStarStory( uid:String, sid:String, star:String ):Unit = database withSession { implicit session =>
-    val uo = userReadStories
-        .filter( s => (s.userId === uid && s.storyId === sid ) ).first
+    //implication is that User cannot star a story before reading it
+    val uo = userReadStories.filter( s => (s.userId === uid && s.storyId === sid ) ).first
     userReadStories.update( ReadStory(uo.userId, uo.storyId, uo.read, star))    
   }
   
+  def saveUserReadStory( uid:String, sid:String, read:String):Unit = database withSession { implicit session =>
+    val uo = userReadStories.filter( s => (s.userId === uid && s.storyId === sid ) ).firstOption
+    uo match{
+     case Some(uoo) => userReadStories.update( ReadStory(uoo.userId, uoo.storyId, read, uoo.star))   
+     case None => userReadStories.update( ReadStory(uid, sid, read, ""))  
+   }
+  }
   def saveOpml( uo:Opml) = database withSession { implicit session =>
     saveOpmlStorage(uo.toStorage )
   }
@@ -60,10 +67,13 @@ class SlickUserDAO(override val profile: JdbcProfile) extends SlickDBConnection(
    val r1 =  opmls.filter( _.userId === uid ).firstOption
    r1 match{
      case Some(uoo) => {
-       val newopml = Opml( uid, uoo.toOpml.outline :+ ol )
-       opmls.update(newopml.toStorage)
+       val curopml = Opml( uid, uoo.toOpml.outline :+ ol )//TODO: whatif this feed is already subscribed
+       opmls.update(curopml.toStorage)
      }
-     case None => ???//TODO: boundary conditon handling
+     case None =>{
+       val newopml = Opml( uid, List( ol ) )
+       opmls.insert(newopml.toStorage)
+     }
    }
   }
   

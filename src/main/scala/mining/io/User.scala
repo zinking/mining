@@ -1,9 +1,5 @@
 package mining.io
 
-class User {
-
-}
-
 //options:{"folderClose":{},"nav":true,"expanded":false,"mode":"all","sort":"newest","hideEmpty":false,"scrollRead":false}
 case class Setting(
 		userId:String,
@@ -22,4 +18,6 @@ case class ReadStory(
     ){
   //star: "STAR" | ""
   //read: "MARK" | "READ" | "UNREAD"
+  //if an entry is not in ReadStory then it's *definitely* unread
+  //if an entry is marked as unread, it is different from unread mentioned above
 }
