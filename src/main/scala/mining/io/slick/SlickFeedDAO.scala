@@ -81,8 +81,13 @@ class SlickFeedDAO(override val profile: JdbcProfile)
   
   def getFeedStories( xmlUrl:String, pagesz:Int = 10, pageno:Int = 0 ):List[Story] = {
     database withTransaction { implicit session =>
-      	val fd = feedsMap( UrlUtil.urlToUid(xmlUrl) ) //TODO: feedsmap is going to consume a lot of memory in the long run
-	    stories.filter( _.feedId === 0l ).drop( pageno* pagesz ).take(pagesz).buildColl
+      	val fd = feedsMap.get( UrlUtil.urlToUid(xmlUrl) ) //TODO: feedsmap is going to consume a lot of memory in the long run
+      	fd match {
+	        case Some( ffd ) => {
+	           stories.filter( _.feedId === ffd.feedId ).drop( pageno* pagesz ).take(pagesz).buildColl
+	        }
+	        case _ => Nil
+	    }
     }
   }
   
