@@ -46,6 +46,7 @@ class SlickFeedDAO(override val profile: JdbcProfile)
     val feed = createOrGetFeedDescriptor(url)
     feed.sync()
     write(feed) 
+    feedsMap += UrlUtil.urlToUid(feed.url) -> feed
     feed
   }
 
@@ -73,13 +74,16 @@ class SlickFeedDAO(override val profile: JdbcProfile)
   def getFeedStories(feedUrl: String, pageSize: Int = 10, pageNo: Int = 0): List[Story] = {
     database withTransaction { implicit session =>
 
-      val fd = loadFeedFromUrl(feedUrl)
+      //val fd = loadFeedFromUrl(feedUrl)
+      val fd = feedsMap.get( UrlUtil.urlToUid(feedUrl) )
       fd match {
-        case Some(feed) => stories.filter(_.feedId === feed.feedId).drop(pageSize * pageSize).take(pageSize).buildColl
+        case Some(feed) => stories.filter(_.feedId === feed.feedId).drop(pageNo * pageSize).take(pageSize).buildColl
         case None => List.empty[Story]
       }
     }
   }
+  
+  
   
   def getStoryById(storyId: String): Story = {
     database withTransaction { implicit session =>

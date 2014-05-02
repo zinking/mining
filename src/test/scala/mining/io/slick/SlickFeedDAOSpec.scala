@@ -68,6 +68,9 @@ class SlickFeedDAOSpec extends FunSuite
     val feed = feedDAO.loadFeedFromUrl(url2).get
     val stories = feedDAO.read(feed)
     stories.size should be > (10)
+    val s1 = stories.head
+    val s2 = stories.drop(8).head
+    s1.link should not be s2.link
   }
   
   test("FeedManager should be able to parse opml format") {

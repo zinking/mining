@@ -22,14 +22,21 @@ class SlickUserDAO(override val profile: JdbcProfile) extends SlickUserFeedDDL(p
   
   def setUserStarStory(userId:String, storyId: Long, starred: Boolean): Unit = database withTransaction { implicit session =>
     //implication is that User cannot star a story before reading it
-    val userStory = userReadStories.filter(s => (s.userId === userId && s.storyId === storyId)).first
-    userReadStories.update(ReadStory(userStory.userId, userStory.storyId, "", starred, userStory.read))    
+    val userStory = userReadStories.filter(s => (s.userId === userId && s.storyId === storyId)).firstOption
+     userStory match{
+      case Some(us) =>userReadStories.update(ReadStory(us.userId, us.storyId, "", starred, us.read))  
+      case _ => 
+     }
   }
   
   def setUserStarStoryWithLink(userId:String, link: String, starred: Boolean): Unit = database withTransaction { implicit session =>
     //implication is that User cannot star a story before reading it
-    val userStory = userReadStories.filter(s => (s.userId === userId && s.storyLink === link)).first
-    userReadStories.update(ReadStory(userStory.userId, 0, link , starred, userStory.read))    
+    val userStory = userReadStories.filter(s => (s.userId === userId && s.storyLink === link)).firstOption
+    userStory match{
+      case Some(us) => userReadStories.update(ReadStory(us.userId, 0, link , starred, us.read)) 
+      case _ => 
+    }
+       
   }
   
   def getUserStarStories(userId: String  , pagesz:Int = 10, pageno:Int = 0): List[Story] = database withSession { implicit session =>
