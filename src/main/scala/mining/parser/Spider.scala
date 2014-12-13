@@ -9,6 +9,7 @@ import java.util.Locale
 import java.util.Date
 import mining.util.DateUtil
 import java.sql.Timestamp
+import scalaj.http.HttpResponse
 
 object Spider {
   
@@ -41,13 +42,17 @@ class Spider {
         )
 
     try{
-    	//TODO:this process is not reactive at all, maybe refactoring using future
-        //TODO: request response header only
-	    val (retcode, responseHeadersMap, resultString) = 
-	      Http(url).headers(browsingHeaders)
-	      		   .option(HttpOptions.connTimeout(2500))
-	      		   .option(HttpOptions.readTimeout(5000))
-	      		   .asHeadersAndParse(Http.readString)
+      //TODO:this process is not reactive at all, maybe refactoring using future
+      //TODO: request response header only
+
+      val response: HttpResponse[String] =
+        Http(url).headers(browsingHeaders)
+          .option(HttpOptions.connTimeout(2500))
+          .option(HttpOptions.readTimeout(5000))
+          .asString
+          
+      val (retcode, responseHeadersMap, resultString) = 
+        (response.code, response.headers, response.body)
 	    
 	    
 	      		   
@@ -59,8 +64,8 @@ class Spider {
 	    //not sure about last-modified
 	    //like test case1 (last-modified reponse header:,List(Tue, 09 Jul 2013 02:33:23 GMT))
 	    responseHeadersMap.get("Last-Modified") match{
-	      case Some( value ) => {
-	         val latest_ts = value(0)
+	      case Some( latest_ts ) => {
+	         //val latest_ts = value(0)
 	         val t1 = DateUtil.getParser.parse(latest_ts)
 	         val t0 = feed.checked
 	         if(t1.compareTo(t0) < 0) {
@@ -72,8 +77,8 @@ class Spider {
 	    }
 	    
 	    responseHeadersMap.get("Content-Type") match{
-	      case Some( value ) => {
-	         val charset = value(0)
+	      case Some( charset ) => {
+	         //val charset = value(0)
 	         val pat = "charset="
 	         val i = charset.indexOf(pat)
 	         if( i > 0 ){
@@ -88,9 +93,9 @@ class Spider {
 	    
 	    //if ETag [some hash like c7f731d5d3dce2e82282450c4fcae4d6 ] didn't change, then content didn't change
 	    responseHeadersMap.get("ETag") match{
-	      case Some( value ) => {
-	        feed.lastEtag = value(0) //update etag
-	        if ( value(0) == lastEtag ) {
+	      case Some( etag ) => {
+	        feed.lastEtag = etag //update etag
+	        if ( etag == lastEtag ) {
 	          logger.info(s"Spider parsing $url skip as ETag[$lastEtag] didn't change ")
 	          return EMPTY_RSS_FEED 
 	        }

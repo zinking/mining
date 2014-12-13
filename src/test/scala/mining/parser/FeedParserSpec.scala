@@ -4,9 +4,9 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
-
 import mining.io.FeedFactory
 import scalaj.http.Http
+import scalaj.http.HttpResponse
 
 @RunWith(classOf[JUnitRunner])
 class FeedParserSpec extends FunSuite 
@@ -54,10 +54,11 @@ class FeedParserSpec extends FunSuite
      val url = "http://coolshell.cn/feed"
        //note some site might don't have standard http server so might don't support this
        //coolshell did support
-     val  (responseCode, headersMap, resultString) = Http(url).asHeadersAndParse(Http.readString)
+     val response: HttpResponse[String] = Http(url).asString
+     val  (responseCode, headersMap, resultString) = (response.code, response.headers, response.body)
      resultString.length() should ( be > 0 )
-     val last_modified = headersMap.getOrElse("Last-Modified", List(""))(0)
-     val last_etag     = headersMap.getOrElse("ETag", List(""))(0)
+     val last_modified = headersMap.getOrElse("Last-Modified", "")
+     val last_etag     = headersMap.getOrElse("ETag", "")
        
      val s1 = new Spider()
      val md = FeedFactory.newFeed(url)

@@ -69,7 +69,10 @@ class SlickUserDAO(override val profile: JdbcProfile) extends SlickUserFeedDDL(p
   def saveOpmlStorage(opmlStorage: OpmlStorage) = database withTransaction { implicit session =>
     val userStorage = opmls.filter(_.userId === opmlStorage.id).firstOption
     userStorage match {
-      case Some(uoo) => opmls.update(opmlStorage)
+      case Some(uoo) => {
+        val q = for { o <- opmls if o.userId === opmlStorage.id } yield o.raw
+        q.update(opmlStorage.raw )
+      }
       case None      => opmls.insert(opmlStorage)
     }
   }

@@ -11,7 +11,7 @@ object SlickUtil {
     import conn.profile.simple._
     
     conn.database withSession { implicit session =>
-      val tableList = MTable.getTables.list()
+      val tableList = MTable.getTables.list(session)
       tableList.map(t => (t.name.name, t)).toMap
     }
   }
