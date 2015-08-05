@@ -6,7 +6,7 @@ version := "0.0.1"
 
 
 
-scalaVersion := "2.11.2"
+scalaVersion := "2.11.7"
 
 scalacOptions ++= Seq("-deprecation", "-feature")
 
@@ -29,15 +29,3 @@ libraryDependencies ++= Seq("com.typesafe.slick" %% "slick" % "2.1.0",
                             "com.h2database"     %  "h2"    % "1.3.166") 
                             
 libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.0.2"
-  					   
-    					   
-//The following configuration is in the format of sbt 0.12 
-//0.13 please check http://www.scala-sbt.org/0.13.1/docs/Detailed-Topics/Java-Sources.html for details
-// Include only src/main/java in the compile configuration
-unmanagedSourceDirectories in Compile <<= Seq(scalaSource in Compile).join
-
-// Include only src/test/java in the test configuration
-unmanagedSourceDirectories in Test <<= Seq(scalaSource in Test).join
-
-unmanagedClasspath in Runtime <<= (unmanagedClasspath in Runtime, baseDirectory) map { (cp, bd) => cp :+ Attributed.blank(bd / "config") }
-
