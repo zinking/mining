@@ -62,7 +62,7 @@ class SlickFeedDAO(override val profile: JdbcProfile)
 	    val fd = loadFeedFromUrl(node)
 	    fd match {
 	      case Some(ffd) => {
-	        val ss = stories.where( _.feedId === ffd.feedId).drop(pageSize * pageNo).take(pageSize)
+	        val ss = stories.filter( _.feedId === ffd.feedId).drop(pageSize * pageNo).take(pageSize)
 		    acc ++ ss.buildColl
 	      }
 	      case _ => acc

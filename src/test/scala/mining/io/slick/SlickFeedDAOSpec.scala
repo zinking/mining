@@ -1,7 +1,7 @@
 package mining.io.slick
 
 import org.scalatest.FunSuite
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.ShouldMatchers
 import org.scalatest.BeforeAndAfterAll
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -76,7 +76,7 @@ class SlickFeedDAOSpec extends FunSuite
   test("FeedManager should be able to parse opml format") {
     val tmpPath = DirectoryUtil.pathFromProject("config", "zhen_opml.xml")
     val xml = XML.loadFile(tmpPath)
-    val opml = Opml("testOpml", xml)
+    val opml = Opml(1L, xml)
     feedDAO.createOrUpdateFeedOPML(opml)
     
     Thread.sleep(5000)

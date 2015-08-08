@@ -57,11 +57,11 @@ object OpmlOutline {
 }
 
 /** OPML XML stored as blob in database */
-case class OpmlStorage(id: String, raw: Blob) {
+case class OpmlStorage(id: Long, raw: Blob) {
   def toOpml(): Opml = Opml(id, XML.load(new InputStreamReader(raw.getBinaryStream,"UTF-8")))
 }
 
-case class Opml(id: String, outline: List[OpmlOutline]) {
+case class Opml(id: Long, outline: List[OpmlOutline]) {
   def toXml(): Elem = {
       	<opml version="1.0">
 		    <head><title>{id}'s subscription</title></head>
@@ -91,7 +91,7 @@ case class Opml(id: String, outline: List[OpmlOutline]) {
 }
 
 object Opml {
-  def apply(id: String, dom: Elem) = {
+  def apply(id: Long, dom: Elem) = {
     val outline1 = dom \ "body" \ "outline"
     val result = outline1.foldLeft[List[OpmlOutline]]( List[OpmlOutline]() )(( acc, node ) =>{
     	val outline2 = node \ "outline"

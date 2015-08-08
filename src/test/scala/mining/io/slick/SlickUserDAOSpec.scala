@@ -1,7 +1,7 @@
 package mining.io.slick
 
 import org.scalatest.FunSuite
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.ShouldMatchers
 import org.scalatest.BeforeAndAfterAll
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -21,7 +21,7 @@ class SlickUserDAOSpec extends FunSuite
   Properties.setProp("runMode", "test")
 
   val userDAO = SlickUserDAO(H2Driver)
-  val userId = "user1"
+  val userId = 1L
 
   override def beforeAll = {
     userDAO.manageDDL()

@@ -3,7 +3,7 @@ package mining.io.slick
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.FunSuite
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.ShouldMatchers
 import org.scalatest.BeforeAndAfterAll
 import scala.util.Properties
 import scala.slick.driver.H2Driver
@@ -20,7 +20,7 @@ class SlickIntegratedDAOSpec extends FunSuite
   val userDAO = SlickUserDAO(H2Driver)
   val feedDAO = SlickFeedDAO(H2Driver)
 
-  val userId = "integUser"
+  val userId = 1L
   val feed1 = "http://coolshell.cn/feed"
   val feed2 = "http://www.beedigital.net/blog/?feed=rss2"
 

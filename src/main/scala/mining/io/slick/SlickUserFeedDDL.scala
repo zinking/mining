@@ -71,7 +71,7 @@ class SlickUserFeedDDL(override val profile: JdbcProfile)
   }
 
   class UserInfo(tag: Tag) extends Table[User](tag, "USER_INFO") {
-    def userId = column[String]("USER_ID", O.PrimaryKey) 
+    def userId = column[Long]("USER_ID", O.PrimaryKey, O.AutoInc) 
     def email = column[String]("EMAIL")
     def hideEmpty = column[String]("HIDE_EMTPY")
     def sort = column[String]("SORT")
@@ -81,7 +81,7 @@ class SlickUserFeedDDL(override val profile: JdbcProfile)
   }
   
   class UserOpml(tag: Tag) extends Table[OpmlStorage](tag, "USER_OPML") {
-    def userId = column[String]("USER_ID", O.PrimaryKey )
+    def userId = column[Long]("USER_ID", O.PrimaryKey )
     def raw    = column[Blob]("RAW")
   
     def userOpmlFK = foreignKey("USER_OPML_FK", userId, userInfo)(_.userId)
@@ -89,7 +89,7 @@ class SlickUserFeedDDL(override val profile: JdbcProfile)
   }
   
   class UserReadStory(tag: Tag) extends Table[ReadStory](tag, "USER_STORY") {
-    def userId    = column[String]("USER_ID", O.PrimaryKey )
+    def userId    = column[Long]("USER_ID", O.PrimaryKey )
     def storyId   = column[Long]("STORY_ID")
     def storyLink = column[String]("STORY_LINK")
     def star      = column[Boolean]("STAR")

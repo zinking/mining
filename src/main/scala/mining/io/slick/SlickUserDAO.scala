@@ -16,11 +16,11 @@ class SlickUserDAO(override val profile: JdbcProfile) extends SlickUserFeedDDL(p
     }
   } 
 
-  def getUserById(userId: String): Option[User] = database withSession { implicit session =>
+  def getUserById(userId: Long): Option[User] = database withSession { implicit session =>
     userInfo.filter(_.userId === userId).firstOption 
   }
   
-  def setUserStarStory(userId:String, storyId: Long, starred: Boolean): Unit = database withTransaction { implicit session =>
+  def setUserStarStory(userId:Long, storyId: Long, starred: Boolean): Unit = database withTransaction { implicit session =>
     //implication is that User cannot star a story before reading it
     val userStory = userReadStories.filter(s => (s.userId === userId && s.storyId === storyId)).firstOption
      userStory match{
@@ -29,7 +29,7 @@ class SlickUserDAO(override val profile: JdbcProfile) extends SlickUserFeedDDL(p
      }
   }
   
-  def setUserStarStoryWithLink(userId:String, link: String, starred: Boolean): Unit = database withTransaction { implicit session =>
+  def setUserStarStoryWithLink(userId:Long, link: String, starred: Boolean): Unit = database withTransaction { implicit session =>
     //implication is that User cannot star a story before reading it
     val userStory = userReadStories.filter(s => (s.userId === userId && s.storyLink === link)).firstOption
     userStory match{
@@ -39,7 +39,7 @@ class SlickUserDAO(override val profile: JdbcProfile) extends SlickUserFeedDDL(p
        
   }
   
-  def getUserStarStories(userId: String  , pagesz:Int = 10, pageno:Int = 0): List[Story] = database withSession { implicit session =>
+  def getUserStarStories(userId: Long  , pagesz:Int = 10, pageno:Int = 0): List[Story] = database withSession { implicit session =>
     val query = for {
       user <- userInfo
       userStory <- userReadStories if (user.userId === userStory.userId && userStory.star === true)
@@ -48,7 +48,7 @@ class SlickUserDAO(override val profile: JdbcProfile) extends SlickUserFeedDDL(p
     query.list.drop( pageno* pagesz ).take(pagesz)
   }
   
-  def saveUserReadStory(userId: String, storyId: Long, read: String):Unit = database withSession { implicit session =>
+  def saveUserReadStory(userId: Long, storyId: Long, read: String):Unit = database withSession { implicit session =>
     val uo = userReadStories.filter(s => (s.userId === userId && s.storyId === storyId)).firstOption
     uo match{
      case Some(uoo) => userReadStories.update(ReadStory(uoo.userId, uoo.storyId, "", uoo.star, read))   
@@ -56,7 +56,7 @@ class SlickUserDAO(override val profile: JdbcProfile) extends SlickUserFeedDDL(p
     }
   }
   
-  def saveUserReadStoryWithLink(userId: String, link: String, read: String):Unit = database withSession { implicit session =>
+  def saveUserReadStoryWithLink(userId: Long, link: String, read: String):Unit = database withSession { implicit session =>
     val uo = userReadStories.filter(s => (s.userId === userId && s.storyLink === link)).firstOption
     uo match{
      case Some(uoo) => userReadStories.update(ReadStory(uoo.userId, uoo.storyId, uoo.storyLink, uoo.star, read))   
@@ -77,13 +77,13 @@ class SlickUserDAO(override val profile: JdbcProfile) extends SlickUserFeedDDL(p
     }
   }
   
-  def getOpmlById(userId: String): Option[Opml] = database withSession { implicit session =>
+  def getOpmlById(userId: Long): Option[Opml] = database withSession { implicit session =>
     val opml1 = opmls.filter(_.userId === userId).firstOption
     opml1.map(_.toOpml)
   }
   
   //Opml structure should be updated in client side and save the whole Opml here
-  def addOmplOutline(uid: String, ol:OpmlOutline) = database withSession { implicit session =>
+  def addOmplOutline(uid: Long, ol:OpmlOutline) = database withSession { implicit session =>
    val r1 =  opmls.filter( _.userId === uid ).firstOption
    r1 match{
      case Some(uoo) => {

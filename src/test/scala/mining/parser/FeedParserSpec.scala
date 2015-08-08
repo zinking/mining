@@ -3,7 +3,7 @@ package mining.parser
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.FunSuite
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.ShouldMatchers
 import mining.io.FeedFactory
 import scalaj.http.Http
 import scalaj.http.HttpResponse

@@ -1,13 +1,13 @@
 package mining.io
 
 //options:{"folderClose":{},"nav":true,"expanded":false,"mode":"all","sort":"newest","hideEmpty":false,"scrollRead":false}
-case class User(userId: String,
+case class User(userId: Long,
                 email: String,
                 sort: String,
                 display: String,
                 hideEmpty: String)
 
-case class ReadStory(userId: String,
+case class ReadStory(userId: Long,
                      storyId: Long,
                      storyLink: String,
                      star: Boolean,
@@ -21,5 +21,5 @@ case class ReadStory(userId: String,
 
 
 object UserFactory {
-  def newUser(userId: String, email: String) = User(userId, email, "", "", "")
+  def newUser(userId: Long, email: String) = User(userId, email, "", "", "")
 }
