@@ -10,8 +10,7 @@ import mining.io.Feed
 import java.sql.Timestamp
 import mining.io.Story
 
-class SlickUserFeedDDL(override val profile: JdbcProfile) 
-  extends SlickDBConnection(profile) {
+class SlickUserFeedDDL(override val profile: JdbcProfile) extends SlickDBConnection(profile) {
   import profile.simple._
   
   //Feed related queries
