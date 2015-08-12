@@ -9,6 +9,11 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
 import mining.io._
 import org.h2.tools.Server
+import mining.util.DirectoryUtil
+import java.io.File
+import java.io.PrintWriter
+import scala.io.Source
+import scala.xml.XML
 
 
 object SlickUserDAO {
@@ -16,6 +21,7 @@ object SlickUserDAO {
 }
 
 class SlickUserDAO(db: Database) extends SlickUserFeedDDL(db) {
+  val opmlFileFolderPath = DirectoryUtil.pathFromProject("target","useropml")
 
   def saveUser(user: User) : Unit = {
     Await.result(
@@ -112,7 +118,15 @@ class SlickUserDAO(db: Database) extends SlickUserFeedDDL(db) {
     )
   }
 
-  def saveOpml(uo: Opml) = saveOpmlStorage( uo.toStorage )
+  def saveOpml(uo: Opml):Unit = {
+    //saveOpmlStorage( uo.toStorage )
+     val rawXml = uo.toXml.toString()
+     val userOpmlFilePath = s"${opmlFileFolderPath}/${uo.id}.xml"
+     val userOpmlFile = new File(userOpmlFilePath)
+     val pw = new PrintWriter(userOpmlFile)
+     pw.write(rawXml)
+     pw.close
+  }
       
   def saveOpmlStorage(opmlStorage: OpmlStorage) = {
     Await.result(
@@ -125,16 +139,16 @@ class SlickUserDAO(db: Database) extends SlickUserFeedDDL(db) {
   }
   
   def getOpmlById(userId: Long): Option[Opml] = {
-    val omplQuery = (for{
-      uo:Option[Opml] <- opmls.filter(_.userId === userId).result.headOption.map(_.map(_.toOpml()))
-      //uo:Option[Opml] <- opmls.filter(_.userId === userId)
-    } yield uo ).withPinnedSession 
-    Await.result( 
-        db.run( 
-            omplQuery
-        ),  
-        Duration.Inf 
-    )
+    val userOpmlFilePath = s"${opmlFileFolderPath}/${userId}.xml"
+    val userOpmlFile = new File(userOpmlFilePath)
+    if( userOpmlFile.exists() ){
+      val fileContents = Source.fromFile(userOpmlFile).getLines.mkString
+      val xmlContent = XML.loadString(fileContents)
+      Some(Opml(userId,xmlContent))
+    }
+    else{
+      None
+    }
   }
  
   

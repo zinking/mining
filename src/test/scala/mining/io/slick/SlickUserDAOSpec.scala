@@ -14,17 +14,18 @@ import scala.util.Properties
 import mining.io.User
 import mining.io.UserFactory
 import slick.driver.H2Driver.api._
+import mining.io.FeedTestPrepare
 
 @RunWith(classOf[JUnitRunner])
 class SlickUserDAOSpec extends FunSuite 
 			           with ShouldMatchers 
-			           with BeforeAndAfterAll {
+			           with BeforeAndAfterAll
+                 with FeedTestPrepare {
   val db = Database.forConfig("h2mem1")
-  //val db = Database.forURL("jdbc:h2:mem:DatabasePublisherTest", driver = "org.h2.Driver", keepAliveConnection = true)
 
   val userDAO = SlickUserDAO(db)
 
-  val userId = 1L
+  val userId = 2L
 
   override def beforeAll = {
     userDAO.manageDDL()

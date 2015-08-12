@@ -8,6 +8,9 @@ import scala.xml.XML
 import javax.sql.rowset.serial.SerialBlob
 import scala.beans.BeanProperty
 import java.io.ByteArrayInputStream
+import mining.util.DirectoryUtil
+import java.io.File
+import java.io.PrintWriter
 
 case class OpmlOutline(
     outline: List[OpmlOutline], 
@@ -65,10 +68,11 @@ case class OpmlStorage(id: Long, raw: Blob) {
     //val blobContent = raw.getBytes(0, raw.length.asInstanceOf[Int])
     //val stream = new ByteArrayInputStream(blobContent)
     //val streamReader = new InputStreamReader(stream,"UTF-8")
-    val xmlElement = XML.load(stream)
+    //val xmlElement = XML.load(stream)
     Opml(id, XML.load(stream))
   }
 }
+
 
 case class Opml(id: Long, outline: List[OpmlOutline]) {
   def toXml(): Elem = {
@@ -84,7 +88,7 @@ case class Opml(id: Long, outline: List[OpmlOutline]) {
   }
    
    def toStorage(): OpmlStorage = new OpmlStorage(id, new SerialBlob(toXml.toString.getBytes("UTF-8")))
-   
+      
    def containsFeed(fd: Feed): Boolean = allFeedsUrl.exists(_ == fd.url)
    
    def containsFeedUrl(feedUrl: String): Boolean = allFeedsUrl.exists(_ == feedUrl)

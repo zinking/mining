@@ -24,6 +24,9 @@ trait FeedTestPrepare {
     //feed ser file directory
     val serFolderPath = DirectoryUtil.pathFromProject("tmp", "ser")
     val serFolder = new File(serFolderPath)
+    
+    val userFolderPath = DirectoryUtil.pathFromProject("target","userompl")
+    val userFolder = new File(userFolderPath)
 
     System.setProperty("mining.feedmgr.path", fmFolderPath)
     System.setProperty("mining.ser.path", serFolderPath)
@@ -31,9 +34,11 @@ trait FeedTestPrepare {
     
     if (!fmFolder.exists()) fmFolder.mkdir()
     if (!serFolder.exists()) serFolder.mkdir()
+    if (!userFolder.exists()) serFolder.mkdir()
     
     cleanUpFolder(fmFolder)
     cleanUpFolder(serFolder)
+    cleanUpFolder(userFolder)
   }
   
   def cleanUpFolder(folder: File) = for (subfile <- folder.listFiles()) subfile.delete()
