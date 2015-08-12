@@ -13,14 +13,17 @@ import mining.io.Opml
 import scala.util.Properties
 import mining.io.User
 import mining.io.UserFactory
+import slick.driver.H2Driver.api._
 
 @RunWith(classOf[JUnitRunner])
 class SlickUserDAOSpec extends FunSuite 
 			           with ShouldMatchers 
 			           with BeforeAndAfterAll {
-  Properties.setProp("runMode", "test")
+  val db = Database.forConfig("h2mem1")
+  //val db = Database.forURL("jdbc:h2:mem:DatabasePublisherTest", driver = "org.h2.Driver", keepAliveConnection = true)
 
-  val userDAO = SlickUserDAO(H2Driver)
+  val userDAO = SlickUserDAO(db)
+
   val userId = 1L
 
   override def beforeAll = {
@@ -47,16 +50,16 @@ class SlickUserDAOSpec extends FunSuite
 		</body>
 	</opml>
       
-    val opml1: Opml = Opml(userId, dom);
+    val opml1: Opml = Opml(userId, dom)
     userDAO.saveOpml(opml1)
   }
   
   test("User should be able to retrieve opml ") {
-	val opml = userDAO.getOpmlById(userId).get
-	
-	opml.id should be (userId)
-	val o1 = opml.outline.head
-	o1.title should be ("We need more...")
+  	val opml = userDAO.getOpmlById(userId).get
+  	
+  	opml.id should be (userId)
+  	val o1 = opml.outline.head
+  	o1.title should be ("We need more...")
   }
   
   test("The opml should be able to get updated") {

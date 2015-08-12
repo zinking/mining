@@ -7,6 +7,7 @@ import scala.xml.Node
 import scala.xml.XML
 import javax.sql.rowset.serial.SerialBlob
 import scala.beans.BeanProperty
+import java.io.ByteArrayInputStream
 
 case class OpmlOutline(
     outline: List[OpmlOutline], 
@@ -58,7 +59,15 @@ object OpmlOutline {
 
 /** OPML XML stored as blob in database */
 case class OpmlStorage(id: Long, raw: Blob) {
-  def toOpml(): Opml = Opml(id, XML.load(new InputStreamReader(raw.getBinaryStream,"UTF-8")))
+  def toOpml(): Opml = {
+
+    val stream = new InputStreamReader(raw.getBinaryStream,"UTF-8")
+    //val blobContent = raw.getBytes(0, raw.length.asInstanceOf[Int])
+    //val stream = new ByteArrayInputStream(blobContent)
+    //val streamReader = new InputStreamReader(stream,"UTF-8")
+    val xmlElement = XML.load(stream)
+    Opml(id, XML.load(stream))
+  }
 }
 
 case class Opml(id: Long, outline: List[OpmlOutline]) {

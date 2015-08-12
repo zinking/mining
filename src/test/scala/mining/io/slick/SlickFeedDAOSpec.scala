@@ -13,22 +13,28 @@ import java.sql.Timestamp
 import mining.util.DirectoryUtil
 import scala.xml.XML
 import mining.io.Opml
+import slick.driver.H2Driver.api._
 
 @RunWith(classOf[JUnitRunner])
 class SlickFeedDAOSpec extends FunSuite 
 			           with ShouldMatchers 
 			           with BeforeAndAfterAll {
-  Properties.setProp("runMode", "test")
 
-  val feedDAO = SlickFeedDAO(H2Driver)
+  val db = Database.forConfig("h2mem1")
+  
+  val url0 = "http://coolshell.cn/feed0"
   val url1 = "http://coolshell.cn/feed"
   val url2 = "http://letitcrash.com/rss"
 
+  
+  val feedDAO = SlickFeedDAO(db)
+  
   override def beforeAll = {
     feedDAO.manageDDL()
   }
 
   test("Save new feed to db should be able to get auto inc id") {
+    //val feed0 = feedDAO.createOrGetFeedDescriptor(url0)
     val feed1 = feedDAO.createOrGetFeedDescriptor(url1)
     val feed2 = feedDAO.createOrGetFeedDescriptor(url2)
     

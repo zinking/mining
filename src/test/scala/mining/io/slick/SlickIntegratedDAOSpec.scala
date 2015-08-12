@@ -10,15 +10,16 @@ import scala.slick.driver.H2Driver
 import mining.io.Opml
 import scala.xml.Elem
 import mining.io.UserFactory
+import slick.driver.H2Driver.api._
 
 @RunWith(classOf[JUnitRunner])
 class SlickIntegratedDAOSpec extends FunSuite
                              with ShouldMatchers 
                              with BeforeAndAfterAll {
-  Properties.setProp("runMode", "test")
+  val db = Database.forConfig("h2mem1")
 
-  val userDAO = SlickUserDAO(H2Driver)
-  val feedDAO = SlickFeedDAO(H2Driver)
+  val userDAO = SlickUserDAO(db)
+  val feedDAO = SlickFeedDAO(db)
 
   val userId = 1L
   val feed1 = "http://coolshell.cn/feed"

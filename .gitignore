@@ -220,3 +220,4 @@ lib_managed/
 .cache-main
 .cache-tests
 .java-version
+.idea

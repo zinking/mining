@@ -1,103 +1,171 @@
 package mining.io.slick
 
 import java.sql.Blob
-
-import scala.slick.driver.JdbcProfile
-
+import _root_.slick.backend.DatabasePublisher
+import slick.driver.H2Driver.api._
+import slick.dbio._
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+import scala.concurrent.ExecutionContext.Implicits.global
 import mining.io._
+import org.h2.tools.Server
 
-class SlickUserDAO(override val profile: JdbcProfile) extends SlickUserFeedDDL(profile) {
-  import profile.simple._
 
-  def saveUser(user: User) = database withTransaction { implicit session => 
-    userInfo.filter(_.userId === user.userId).firstOption match {
-      case Some(user) => userInfo.update(user)
-      case None       => userInfo.insert(user)
-    }
+object SlickUserDAO {
+  def apply(db:Database) = new SlickUserDAO(db)
+}
+
+class SlickUserDAO(db: Database) extends SlickUserFeedDDL(db) {
+
+  def saveUser(user: User) : Unit = {
+    Await.result(
+        db.run( userInfo += user ),
+        Duration.Inf
+    )
   } 
+  
+  def updateUser(user: User) : Unit = {
+    Await.result(
+        db.run(
+            userInfo.filter(_.userId === user.userId).update(user)
+        ), 
+        Duration.Inf
+    )
+  }
 
-  def getUserById(userId: Long): Option[User] = database withSession { implicit session =>
-    userInfo.filter(_.userId === userId).firstOption 
+  def getUserById(userId: Long): Option[User] = {
+    Await.result(
+        db.run(userInfo.filter(_.userId === userId).result.headOption), 
+        Duration.Inf
+    )
   }
   
-  def setUserStarStory(userId:Long, storyId: Long, starred: Boolean): Unit = database withTransaction { implicit session =>
+  def setUserStarStory(userId:Long, storyId: Long, starred: Boolean): Unit = {
     //implication is that User cannot star a story before reading it
-    val userStory = userReadStories.filter(s => (s.userId === userId && s.storyId === storyId)).firstOption
-     userStory match{
-      case Some(us) =>userReadStories.update(ReadStory(us.userId, us.storyId, "", starred, us.read))  
-      case _ => 
-     }
+    Await.result(
+        db.run(
+            userReadStories.filter(s => (s.userId === userId && s.storyId === storyId)).result.headOption map { r=>
+              r match{
+                case Some(us) =>userReadStories.update(ReadStory(us.userId, us.storyId, "", starred, us.read))  
+                case _        => 
+              } 
+            }
+        ), 
+        Duration.Inf
+    )
   }
   
-  def setUserStarStoryWithLink(userId:Long, link: String, starred: Boolean): Unit = database withTransaction { implicit session =>
+  def setUserStarStoryWithLink(userId:Long, link: String, starred: Boolean): Unit = {
     //implication is that User cannot star a story before reading it
-    val userStory = userReadStories.filter(s => (s.userId === userId && s.storyLink === link)).firstOption
-    userStory match{
-      case Some(us) => userReadStories.update(ReadStory(us.userId, 0, link , starred, us.read)) 
-      case _ => 
-    }
-       
+    Await.result(
+        db.run(
+            userReadStories.filter(s => (s.userId === userId && s.storyLink === link)).result.headOption map { r=>
+              r match{
+                case Some(us) =>userReadStories.update(ReadStory(us.userId, 0, link , starred, us.read))   
+                case _        => 
+              } 
+            }
+        ), 
+        Duration.Inf
+    )       
   }
   
-  def getUserStarStories(userId: Long  , pagesz:Int = 10, pageno:Int = 0): List[Story] = database withSession { implicit session =>
+  def getUserStarStories(userId: Long  , pagesz:Int = 10, pageno:Int = 0): Seq[Story] = {
     val query = for {
       user <- userInfo
       userStory <- userReadStories if (user.userId === userStory.userId && userStory.star === true)
       story <- stories if userStory.storyId === story.id
     } yield (story) 
-    query.list.drop( pageno* pagesz ).take(pagesz)
+    
+    Await.result(
+        db.run(query.result).map{ list =>
+           list.drop( pageno* pagesz ).take(pagesz)
+        }
+    , Duration.Inf)
   }
   
-  def saveUserReadStory(userId: Long, storyId: Long, read: String):Unit = database withSession { implicit session =>
-    val uo = userReadStories.filter(s => (s.userId === userId && s.storyId === storyId)).firstOption
-    uo match{
-     case Some(uoo) => userReadStories.update(ReadStory(uoo.userId, uoo.storyId, "", uoo.star, read))   
-     case None      => userReadStories.update(ReadStory(userId, storyId, "",  false, read))  
-    }
+  def saveUserReadStory(userId: Long, storyId: Long, read: String):Unit = {
+    Await.result(
+        db.run(
+            userReadStories.filter(s => (s.userId === userId && s.storyId === storyId)).result.headOption map { uo=>
+              uo match{
+               case Some(uoo) => userReadStories.update(ReadStory(uoo.userId, uoo.storyId, "", uoo.star, read))   
+               case None      => userReadStories.update(ReadStory(userId, storyId, "",  false, read))  
+              } 
+            }
+        ).map(_ => ()), 
+        Duration.Inf
+    )    
   }
   
-  def saveUserReadStoryWithLink(userId: Long, link: String, read: String):Unit = database withSession { implicit session =>
-    val uo = userReadStories.filter(s => (s.userId === userId && s.storyLink === link)).firstOption
-    uo match{
-     case Some(uoo) => userReadStories.update(ReadStory(uoo.userId, uoo.storyId, uoo.storyLink, uoo.star, read))   
-     case None      => userReadStories.update(ReadStory(userId, 0, link, false, read))  
-    }
+  def saveUserReadStoryWithLink(userId: Long, link: String, read: String):Unit = {
+    Await.result(
+        db.run(
+            userReadStories.filter(s => (s.userId === userId && s.storyLink === link)).result.headOption map { uo=>
+              uo match{
+                case Some(uoo) => userReadStories.update(ReadStory(uoo.userId, uoo.storyId, uoo.storyLink, uoo.star, read))   
+                case None      => userReadStories.update(ReadStory(userId, 0, link, false, read))  
+              } 
+            }
+        ).map(_ => ()), 
+        Duration.Inf
+    )
   }
 
   def saveOpml(uo: Opml) = saveOpmlStorage( uo.toStorage )
       
-  def saveOpmlStorage(opmlStorage: OpmlStorage) = database withTransaction { implicit session =>
-    val userStorage = opmls.filter(_.userId === opmlStorage.id).firstOption
-    userStorage match {
-      case Some(uoo) => {
-        val q = for { o <- opmls if o.userId === opmlStorage.id } yield o.raw
-        q.update(opmlStorage.raw )
-      }
-      case None      => opmls.insert(opmlStorage)
-    }
+  def saveOpmlStorage(opmlStorage: OpmlStorage) = {
+    Await.result(
+        db.run(
+            opmls.insertOrUpdate(opmlStorage)
+        ).map(_ => ()), 
+        Duration.Inf
+    )
+
   }
   
-  def getOpmlById(userId: Long): Option[Opml] = database withSession { implicit session =>
-    val opml1 = opmls.filter(_.userId === userId).firstOption
-    opml1.map(_.toOpml)
+  def getOpmlById(userId: Long): Option[Opml] = {
+    val omplQuery = (for{
+      uo:Option[Opml] <- opmls.filter(_.userId === userId).result.headOption.map(_.map(_.toOpml()))
+      //uo:Option[Opml] <- opmls.filter(_.userId === userId)
+    } yield uo ).withPinnedSession 
+    Await.result( 
+        db.run( 
+            omplQuery
+        ),  
+        Duration.Inf 
+    )
+  }
+ 
+  
+  def getOpmlByIdStreamed(userId: Long) = {
+    val opmlQuery = for (o <- opmls if o.userId === userId ) yield o.raw
+    val opmlQueryResult = opmlQuery.result
+    val blobSource: DatabasePublisher[Blob] = db.stream(opmlQueryResult)
+    val byteSource: DatabasePublisher[Array[Byte]] = blobSource.mapResult { b =>
+      b.getBytes(0, b.length().toInt)
+    }
+    
   }
   
   //Opml structure should be updated in client side and save the whole Opml here
-  def addOmplOutline(uid: Long, ol:OpmlOutline) = database withSession { implicit session =>
-   val r1 =  opmls.filter( _.userId === uid ).firstOption
-   r1 match{
-     case Some(uoo) => {
-       val curopml = Opml( uid, uoo.toOpml.outline :+ ol )//TODO: whatif this feed is already subscribed
-       opmls.update(curopml.toStorage)
-     }
-     case None =>{
-       val newopml = Opml( uid, List( ol ) )
-       opmls.insert(newopml.toStorage)
-     }
-   }
+  def addOmplOutline(uid: Long, ol:OpmlOutline) = {
+    Await.result(
+        db.run(
+            opmls.filter( _.userId === uid ).result.headOption map { r1=>
+              r1 match{
+                 case Some(uoo) => {
+                   val curopml = Opml( uid, uoo.toOpml.outline :+ ol )//TODO: whatif this feed is already subscribed
+                   opmls.update(curopml.toStorage)
+                 }
+                 case None =>{
+                   val newopml = Opml( uid, List( ol ) )
+                   opmls+=(newopml.toStorage)
+                 }
+              } 
+            }
+        ), 
+        Duration.Inf
+    )   
   }
-}
-
-object SlickUserDAO {
-  def apply(profile: JdbcProfile) = new SlickUserDAO(profile)
 }

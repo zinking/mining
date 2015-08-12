@@ -1,6 +1,5 @@
 package mining.io.slick
 
-import scala.slick.driver.JdbcProfile
 import mining.io.User
 import mining.io.OpmlStorage
 import java.sql.Blob
@@ -9,9 +8,9 @@ import java.util.Date
 import mining.io.Feed
 import java.sql.Timestamp
 import mining.io.Story
+import slick.driver.H2Driver.api._
 
-class SlickUserFeedDDL(override val profile: JdbcProfile) extends SlickDBConnection(profile) {
-  import profile.simple._
+class SlickUserFeedDDL( db: Database ){
   
   //Feed related queries
   val stories = TableQuery[FeedStory]
@@ -22,19 +21,13 @@ class SlickUserFeedDDL(override val profile: JdbcProfile) extends SlickDBConnect
   val opmls = TableQuery[UserOpml]
   val userReadStories = TableQuery[UserReadStory]
    
-  def manageDDL() = {
-    val tablesMap = SlickUtil.tablesMap(this)
-    try {
-      database withTransaction { implicit session =>
-        if (!tablesMap.contains("FEED_SOURCE")) feeds.ddl.create
-        if (!tablesMap.contains("FEED_STORY")) stories.ddl.create
-        if (!tablesMap.contains("USER_INFO")) userInfo.ddl.create
-        if (!tablesMap.contains("USER_OPML")) opmls.ddl.create
-        if (!tablesMap.contains("USER_STORY")) userReadStories.ddl.create
-      }
-    } catch {
-      case e: Throwable => println(e) //TODO: Some problem when creating DDL in multiple Specs.
-    }
+  def manageDDL( ) = {
+    val tablesMap = SlickUtil.tablesMap(db)
+    if (!tablesMap.contains("FEED_SOURCE"))   db.run(feeds.schema.create)
+    if (!tablesMap.contains("FEED_STORY"))    db.run(stories.schema.create)
+    if (!tablesMap.contains("USER_INFO"))     db.run(userInfo.schema.create)
+    if (!tablesMap.contains("USER_OPML"))     db.run(opmls.schema.create)
+    if (!tablesMap.contains("USER_STORY"))    db.run(userReadStories.schema.create)
   }
   
   //Implicitly map j.u.Date to Timestamp for the following column definitions
@@ -70,7 +63,7 @@ class SlickUserFeedDDL(override val profile: JdbcProfile) extends SlickDBConnect
   }
 
   class UserInfo(tag: Tag) extends Table[User](tag, "USER_INFO") {
-    def userId = column[Long]("USER_ID", O.PrimaryKey, O.AutoInc) 
+    def userId = column[Long]("USER_ID", O.PrimaryKey) 
     def email = column[String]("EMAIL")
     def hideEmpty = column[String]("HIDE_EMTPY")
     def sort = column[String]("SORT")
