@@ -32,8 +32,9 @@ class SlickFeedDAO(db:Database) extends SlickUserFeedDDL(db)
 
   override def loadFeeds() = {
     val map = mutable.Map.empty[String, Feed] 
+    val allFeedsQuery = for{ feed <- feeds } yield feed
     Await.result(
-        db.run(feeds.result), 
+        db.run(allFeedsQuery.result), 
         Duration.Inf
     ).map{ f=>
       map += (UrlUtil.urlToUid(f.url) -> f)

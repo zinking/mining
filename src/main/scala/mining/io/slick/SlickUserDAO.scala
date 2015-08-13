@@ -121,13 +121,18 @@ class SlickUserDAO(db: Database) extends SlickUserFeedDDL(db) {
   def saveOpml(uo: Opml):Unit = {
     //saveOpmlStorage( uo.toStorage )
      val rawXml = uo.toXml.toString()
-     val userOpmlFilePath = s"${opmlFileFolderPath}/${uo.id}.xml"
+     saveOpml(uo.id,rawXml)
+  }
+  
+  def saveOpml(uid:Long,xmlContent:String):Unit = {
+     val userOpmlFilePath = s"${opmlFileFolderPath}/${uid}.xml"
      val userOpmlFile = new File(userOpmlFilePath)
      val pw = new PrintWriter(userOpmlFile)
-     pw.write(rawXml)
+     pw.write(xmlContent)
      pw.close
   }
       
+  @deprecated
   def saveOpmlStorage(opmlStorage: OpmlStorage) = {
     Await.result(
         db.run(
@@ -171,10 +176,12 @@ class SlickUserDAO(db: Database) extends SlickUserFeedDDL(db) {
                  case Some(uoo) => {
                    val curopml = Opml( uid, uoo.toOpml.outline :+ ol )//TODO: whatif this feed is already subscribed
                    opmls.update(curopml.toStorage)
+                   saveOpml(curopml)
                  }
                  case None =>{
                    val newopml = Opml( uid, List( ol ) )
                    opmls+=(newopml.toStorage)
+                   saveOpml(newopml)
                  }
               } 
             }
