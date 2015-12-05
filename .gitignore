@@ -221,3 +221,4 @@ lib_managed/
 .cache-tests
 .java-version
 .idea
+*.iml

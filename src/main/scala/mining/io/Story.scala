@@ -15,27 +15,25 @@ case class Story(var id: Long,
                  val author: String,
                  val description: String,
                  val content: String) {
-
-  
 }
 
 object StoryFactory {
-  def fromSyndFeed(synd: SyndEntry, feed: Feed): Story = 
-    Story(0, 
-    	  feed.feedId, 
-    	  synd.getTitle(), 
-    	  synd.getLink(), 
-          synd.getPublishedDate(), 
-          if (synd.getUpdatedDate() != null) synd.getUpdatedDate() else synd.getPublishedDate(),
-          synd.getAuthor(), 
-          if (synd.getDescription() != null) synd.getDescription().getValue() else "", 
-          getSyndContent(synd)
-          ) 
-          
-  def getSyndContent(synd: SyndEntry): String = {
-    synd.getContents().asScala.map(_.asInstanceOf[SyndContent]).headOption match {
-      case Some(content) => content.getValue()
-      case None => ""
+    def fromSyndFeed(synd: SyndEntry, feed: Feed): Story =
+        Story(-1,
+            feed.feedId,
+            synd.getTitle(),
+            synd.getLink(),
+            synd.getPublishedDate(),
+            if (synd.getUpdatedDate() != null) synd.getUpdatedDate() else synd.getPublishedDate(),
+            synd.getAuthor(),
+            if (synd.getDescription() != null) synd.getDescription().getValue() else "",
+            getSyndContent(synd)
+        )
+    
+    def getSyndContent(synd: SyndEntry): String = {
+        synd.getContents().asScala.map(_.asInstanceOf[SyndContent]).headOption match {
+            case Some(content) => content.getValue()
+            case None => ""
+        }
     }
-  }
 }

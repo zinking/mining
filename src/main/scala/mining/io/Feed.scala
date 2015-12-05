@@ -15,24 +15,24 @@ case class Feed(val url: String,
                 var checked: Date,
                 var lastUrl: String,
                 var encoding: String) {
-  /** OPML outline for the feed */
-  var outline = OpmlOutline.empty()
+    /** OPML outline for the feed */
+    var outline = OpmlOutline.empty()
 
-  /** Stories sync from RSS but not persisted yet */
-  val unsavedStories = mutable.ListBuffer.empty[Story]
+    /** Stories sync from RSS but not persisted yet */
+    val unsavedStories = mutable.ListBuffer.empty[Story]
 
-  /** Sync new stories from RSS feed */
-  def sync() = this.synchronized {
-    unsavedStories ++= FeedParser(this).syncFeed()
-  }
-  
-  /** Unique id generated from the feed URL */
-  def uid = UrlUtil.urlToUid(url)
-  
-  override def toString = s"FeedDescriptor[$url]"
+    /** Sync new stories from RSS feed */
+    def sync() = this.synchronized {
+        unsavedStories ++= FeedParser(this).syncFeed()
+    }
+
+    /** Unique id generated from the feed URL */
+    def uid = UrlUtil.urlToUid(url)
+
+    override def toString = s"FeedDescriptor[$url]"
 }
 
 object FeedFactory {
-  def newFeed(url: String) = new Feed(url, 0L, "", new Date(0), "", "UTF-8")
+    def newFeed(url: String) = new Feed(url, 0L, "", new Date(), "", "UTF-8")
 }
 

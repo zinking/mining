@@ -5,13 +5,13 @@ import com.typesafe.config.ConfigFactory
 import org.slf4j.LoggerFactory
 
 object EnvUtil {
-  val logger = LoggerFactory.getLogger(getClass())
+    val logger = LoggerFactory.getLogger(getClass())
 
-  def runMode = Properties.propOrElse("runMode", "prod")
-  
-  def configs = {
-    val mode = runMode
-    logger.info(s"Loading configuration of $mode environment")
-    ConfigFactory.load(runMode)
-  }
+    def runMode = Properties.propOrElse("runMode", "prod")
+
+    def configs = {
+        val mode = runMode
+        logger.info(s"Loading configuration of $mode environment")
+        ConfigFactory.load(runMode)
+    }
 }
