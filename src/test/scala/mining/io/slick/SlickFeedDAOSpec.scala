@@ -6,9 +6,8 @@ import org.scalatest.ShouldMatchers
 import org.scalatest.BeforeAndAfterAll
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import mining.util.UrlUtil
+import mining.util.{DaoTestUtil, UrlUtil, DirectoryUtil}
 import java.util.Date
-import mining.util.DirectoryUtil
 import scala.xml.XML
 import mining.io.Opml
 
@@ -17,18 +16,15 @@ import mining.io.Opml
 class SlickFeedDAOSpec extends FunSuite
 with ShouldMatchers
 with BeforeAndAfterAll {
-
-    val db = "test"
-
     val url0 = "http://coolshell.cn/feed0"
     val url1 = "http://coolshell.cn/feed"
     val url2 = "http://letitcrash.com/rss"
 
 
-    val feedDAO = FeedDao(db)
+    val feedDAO = FeedDao()
 
     override def afterAll = {
-        DaoTestUtil.truncateAllTables(db)
+        DaoTestUtil.truncateAllTables()
     }
 
     test("Save new feed to db should be able to get auto inc id") {

@@ -6,15 +6,11 @@ import org.scalatest.ShouldMatchers
 import org.scalatest.BeforeAndAfterAll
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import mining.util.UrlUtil
-import java.util.Date
+import mining.util.{DaoTestUtil, UrlUtil}
 import scala.xml.Elem
 import mining.io.Opml
-import scala.util.Properties
-import mining.io.User
 import mining.io.UserFactory
 import mining.io.FeedTestPrepare
-import slick.driver.MySQLDriver.api._
 
 @RunWith(classOf[JUnitRunner])
 class SlickUserDAOSpec extends FunSuite
@@ -23,12 +19,12 @@ with BeforeAndAfterAll
 with FeedTestPrepare {
     val db = "test"
 
-    val userDAO = UserDao(db)
+    val userDAO = UserDao()
 
     val userId = 2L
 
     override def afterAll = {
-        DaoTestUtil.truncateAllTables(db)
+        DaoTestUtil.truncateAllTables
     }
 
 

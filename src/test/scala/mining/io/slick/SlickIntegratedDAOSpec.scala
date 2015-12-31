@@ -1,32 +1,29 @@
 package mining.io.slick
 
 import mining.io.dao.{FeedDao, UserDao}
+import mining.util.DaoTestUtil
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.FunSuite
 import org.scalatest.ShouldMatchers
 import org.scalatest.BeforeAndAfterAll
-import scala.util.Properties
 import mining.io.Opml
 import scala.xml.Elem
 import mining.io.UserFactory
-import slick.driver.MySQLDriver.api._
 
 @RunWith(classOf[JUnitRunner])
 class SlickIntegratedDAOSpec extends FunSuite
 with ShouldMatchers
 with BeforeAndAfterAll {
-    val db = "test"
-
-    val userDAO = UserDao(db)
-    val feedDAO = FeedDao(db)
+    val userDAO = UserDao()
+    val feedDAO = FeedDao()
 
     val userId = 1L
     val feed1 = "http://coolshell.cn/feed"
     val feed2 = "http://www.beedigital.net/blog/?feed=rss2"
 
     override def afterAll = {
-        DaoTestUtil.truncateAllTables(db)
+        DaoTestUtil.truncateAllTables()
     }
 
     test("User info and his opml should be able to be saved correctly") {

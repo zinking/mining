@@ -21,10 +21,8 @@ import scala.language.reflectiveCalls
  * Created by awang on 5/12/15.
  */
 object FeedDao {
-    def apply(db:String) = {
-        val conf:Config = ConfigFactory.load
-        val connection = JdbcConnectionFactory(conf.getConfig(db)).getPooledConnection()
-        new FeedDao(connection)
+    def apply() = {
+        new FeedDao()
     }
 
     def resultToFeed(r:ResultSet): Feed ={
@@ -53,7 +51,7 @@ object FeedDao {
     }
 }
 
-class FeedDao(connection:Connection) extends Dao
+class FeedDao() extends Dao
 with FeedManager
 with FeedWriter
 with FeedReader {
@@ -91,14 +89,17 @@ with FeedReader {
     override def read(feed: Feed, pageSize: Int = 10, pageNo: Int = 0): Iterable[Story] = {
         val q = s"select * from FEED_STORY where feed_id=${feed.feedId} order by updated desc limit ${(pageNo)*pageSize},$pageSize "
         val result = new util.ArrayList[Story]
-        using(connection.prepareStatement(q)) { statement =>
-            using(statement.executeQuery(q)) { rs =>
-                while (rs.next) {
-                    val story = resultToStory(rs)
-                    result.add(story)
+        using(JdbcConnectionFactory.getPooledConnection){connection=>
+            using(connection.prepareStatement(q)) { statement =>
+                using(statement.executeQuery(q)) { rs =>
+                    while (rs.next) {
+                        val story = resultToStory(rs)
+                        result.add(story)
+                    }
                 }
             }
         }
+
         result.asScala.toList
     }
 
@@ -107,11 +108,13 @@ with FeedReader {
     def getAllFeeds:Iterable[Feed] = {
         val q = "select * from FEED_SOURCE "
         val result = new util.ArrayList[Feed]
-        using(connection.prepareStatement(q)) { statement =>
-            using(statement.executeQuery(q)) { rs =>
-                while (rs.next) {
-                    val feed = resultToFeed(rs)
-                    result.add(feed)
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                using(statement.executeQuery(q)) { rs =>
+                    while (rs.next) {
+                        val feed = resultToFeed(rs)
+                        result.add(feed)
+                    }
                 }
             }
         }
@@ -121,11 +124,13 @@ with FeedReader {
     def getAllFutureFeeds:Future[Iterable[Feed]] = Future{
         val q = "select * from FEED_SOURCE "
         val result = new util.ArrayList[Feed]
-        using(connection.prepareStatement(q)) { statement =>
-            using(statement.executeQuery(q)) { rs =>
-                while (rs.next) {
-                    val feed = resultToFeed(rs)
-                    result.add(feed)
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                using(statement.executeQuery(q)) { rs =>
+                    while (rs.next) {
+                        val feed = resultToFeed(rs)
+                        result.add(feed)
+                    }
                 }
             }
         }
@@ -143,31 +148,35 @@ with FeedReader {
     }
     private def updateFeed(feed:Feed):Feed={
         val q = s"update FEED_SOURCE set url=?,last_etag=?,checked=?,last_url=?,encoding=? where feed_id = ${feed.feedId}"
-        using(connection.prepareStatement(q)) { statement =>
-            statement.setString(1,feed.url)
-            statement.setString(2,feed.lastEtag)
-            statement.setTimestamp(3, new Timestamp(feed.checked.getTime))
-            statement.setString(4,feed.lastUrl)
-            statement.setString(5,feed.encoding)
-            statement.executeUpdate()
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                statement.setString(1, feed.url)
+                statement.setString(2, feed.lastEtag)
+                statement.setTimestamp(3, new Timestamp(feed.checked.getTime))
+                statement.setString(4, feed.lastUrl)
+                statement.setString(5, feed.encoding)
+                statement.executeUpdate()
+            }
         }
         feed
     }
 
     private def insertFeed(feed:Feed):Feed={
         val q = "INSERT INTO FEED_SOURCE (URL,LAST_ETAG,CHECKED,LAST_URL,ENCODING) VALUES (?,?,?,?,?)"
-        using(connection.prepareStatement(q,Statement.RETURN_GENERATED_KEYS)) { statement =>
-            statement.setString(1,feed.url)
-            statement.setString(2,feed.lastEtag)
-            statement.setTimestamp(3, new Timestamp(feed.checked.getTime))
-            statement.setString(4,feed.lastUrl)
-            statement.setString(5,feed.encoding)
-            statement.executeUpdate()
-            val newFeedIdRS = statement.getGeneratedKeys
-            if(newFeedIdRS.next){
-                feed.feedId = newFeedIdRS.getLong(1)
-            } else{
-                throw new SQLException("Feed Insertion failed")
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q, Statement.RETURN_GENERATED_KEYS)) { statement =>
+                statement.setString(1, feed.url)
+                statement.setString(2, feed.lastEtag)
+                statement.setTimestamp(3, new Timestamp(feed.checked.getTime))
+                statement.setString(4, feed.lastUrl)
+                statement.setString(5, feed.encoding)
+                statement.executeUpdate()
+                val newFeedIdRS = statement.getGeneratedKeys
+                if (newFeedIdRS.next) {
+                    feed.feedId = newFeedIdRS.getLong(1)
+                } else {
+                    throw new SQLException("Feed Insertion failed")
+                }
             }
         }
         feed
@@ -175,21 +184,23 @@ with FeedReader {
 
     def insertFeedStory(feed:Feed,story:Story):Story = {
         val q = "INSERT INTO FEED_STORY (feed_id,title,link,published,updated,author,description,content) VALUES (?,?,?,?,?,?,?,?)"
-        using(connection.prepareStatement(q,Statement.RETURN_GENERATED_KEYS)) { statement =>
-            statement.setLong(1,feed.feedId)
-            statement.setString(2,story.title)
-            statement.setString(3,story.link)
-            statement.setTimestamp(4, new Timestamp(story.published.getTime))
-            statement.setTimestamp(5, new Timestamp(story.updated.getTime))
-            statement.setString(6,story.author)
-            statement.setString(7,story.description)
-            statement.setString(8,story.content)
-            statement.executeUpdate()
-            val newStoryIdRS = statement.getGeneratedKeys
-            if(newStoryIdRS.next){
-                story.id = newStoryIdRS.getLong(1)
-            } else{
-                throw new SQLException("story Insertion failed")
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q, Statement.RETURN_GENERATED_KEYS)) { statement =>
+                statement.setLong(1, feed.feedId)
+                statement.setString(2, story.title)
+                statement.setString(3, story.link)
+                statement.setTimestamp(4, new Timestamp(story.published.getTime))
+                statement.setTimestamp(5, new Timestamp(story.updated.getTime))
+                statement.setString(6, story.author)
+                statement.setString(7, story.description)
+                statement.setString(8, story.content)
+                statement.executeUpdate()
+                val newStoryIdRS = statement.getGeneratedKeys
+                if (newStoryIdRS.next) {
+                    story.id = newStoryIdRS.getLong(1)
+                } else {
+                    throw new SQLException("story Insertion failed")
+                }
             }
         }
         story
@@ -221,12 +232,14 @@ with FeedReader {
     def getStoryById(storyId: Long): Story = {
         val q = "select * from FEED_STORY where story_id=?"
         val result = new util.ArrayList[Story]
-        using(connection.prepareStatement(q)) { statement =>
-            statement.setLong(1,storyId)
-            using(statement.executeQuery()) { rs =>
-                while (rs.next) {
-                    val story = resultToStory(rs)
-                    result.add(story)
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                statement.setLong(1, storyId)
+                using(statement.executeQuery()) { rs =>
+                    while (rs.next) {
+                        val story = resultToStory(rs)
+                        result.add(story)
+                    }
                 }
             }
         }
@@ -236,12 +249,14 @@ with FeedReader {
     def getStoryByLink(sl: String): Story = {
         val q = "select * from FEED_STORY where link=?"
         val result = new util.ArrayList[Story]
-        using(connection.prepareStatement(q)) { statement =>
-            statement.setString(1,sl)
-            using(statement.executeQuery()) { rs =>
-                while (rs.next) {
-                    val story = resultToStory(rs)
-                    result.add(story)
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                statement.setString(1, sl)
+                using(statement.executeQuery()) { rs =>
+                    while (rs.next) {
+                        val story = resultToStory(rs)
+                        result.add(story)
+                    }
                 }
             }
         }

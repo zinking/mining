@@ -18,10 +18,8 @@ import mining.io._
  * Created by awang on 5/12/15.
  */
 object UserDao {
-    def apply(db:String) = {
-        val conf:Config = ConfigFactory.load
-        val connection = JdbcConnectionFactory(conf.getConfig(db)).getPooledConnection()
-        new UserDao(connection)
+    def apply() = {
+        new UserDao()
     }
 
     def resultToUser(rs: ResultSet): User = {
@@ -51,27 +49,31 @@ object UserDao {
     }
 }
 
-class UserDao(connection:Connection) extends Dao {
+class UserDao() extends Dao {
     import UserDao._
     override def log: Logger = LoggerFactory.getLogger(classOf[UserDao])
 
 
     def saveUser(user: User): Unit = {
         val q = "INSERT INTO USER_INFO (user_id,email,pref) VALUES (?,?,?)"
-        using(connection.prepareStatement(q)) { statement =>
-            statement.setLong(1, user.userId)
-            statement.setString(2, user.email)
-            statement.setString(3, user.prefData)
-            statement.executeUpdate()
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                statement.setLong(1, user.userId)
+                statement.setString(2, user.email)
+                statement.setString(3, user.prefData)
+                statement.executeUpdate()
+            }
         }
     }
 
     def updateUser(user: User): Unit = {
         val q = "update USER_INFO set pref=? where user_id = ?"
-        using(connection.prepareStatement(q)) { statement =>
-            statement.setString(1, user.prefData)
-            statement.setLong(2, user.userId)
-            statement.executeUpdate()
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                statement.setString(1, user.prefData)
+                statement.setLong(2, user.userId)
+                statement.executeUpdate()
+            }
         }
     }
 
@@ -80,12 +82,14 @@ class UserDao(connection:Connection) extends Dao {
     def getUser(uid: Long): Option[User] = {
         val q = "select * from USER_INFO where user_id = ? "
         val result = new util.ArrayList[User]
-        using(connection.prepareStatement(q)) { statement =>
-            statement.setLong(1, uid)
-            using(statement.executeQuery()) { rs =>
-                while (rs.next) {
-                    val feed = resultToUser(rs)
-                    result.add(feed)
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                statement.setLong(1, uid)
+                using(statement.executeQuery()) { rs =>
+                    while (rs.next) {
+                        val feed = resultToUser(rs)
+                        result.add(feed)
+                    }
                 }
             }
         }
@@ -100,13 +104,15 @@ class UserDao(connection:Connection) extends Dao {
     def getUserStory(uid: Long, sid: Long): Option[UserStory] = {
         val q = "select * from USER_STORY where user_id = ? and story_id = ? "
         val result = new util.ArrayList[UserStory]
-        using(connection.prepareStatement(q)) { statement =>
-            statement.setLong(1, uid)
-            statement.setLong(2, sid)
-            using(statement.executeQuery()) { rs =>
-                while (rs.next) {
-                    val userStory = resultToUserStory(rs)
-                    result.add(userStory)
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                statement.setLong(1, uid)
+                statement.setLong(2, sid)
+                using(statement.executeQuery()) { rs =>
+                    while (rs.next) {
+                        val userStory = resultToUserStory(rs)
+                        result.add(userStory)
+                    }
                 }
             }
         }
@@ -120,33 +126,39 @@ class UserDao(connection:Connection) extends Dao {
 
     def insertUserStory(us:UserStory)={
         val q = "INSERT INTO USER_STORY (user_id,story_id,hasread,haslike,comment) VALUES (?,?,?,?,?)"
-        using(connection.prepareStatement(q)) { statement =>
-            statement.setLong(1,us.userId)
-            statement.setLong(2,us.storyId)
-            statement.setInt(3,us.hasRead)
-            statement.setInt(4,us.hasLike)
-            statement.setString(5,us.comment)
-            statement.executeUpdate()
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                statement.setLong(1, us.userId)
+                statement.setLong(2, us.storyId)
+                statement.setInt(3, us.hasRead)
+                statement.setInt(4, us.hasLike)
+                statement.setString(5, us.comment)
+                statement.executeUpdate()
+            }
         }
     }
 
     def updateUserStoryRead(uid:Long,sid:Long,hasRead:Int)={
-        val q = "update USER_STORY set hasread=? where user_id=?,story_id=?"
-        using(connection.prepareStatement(q)) { statement =>
-            statement.setInt(1,hasRead)
-            statement.setLong(2,uid)
-            statement.setLong(3,sid)
-            statement.executeUpdate()
+        val q = "update USER_STORY set hasread=? where user_id=? and story_id=?"
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                statement.setInt(1, hasRead)
+                statement.setLong(2, uid)
+                statement.setLong(3, sid)
+                statement.executeUpdate()
+            }
         }
     }
 
     def updateUserStoryLike(uid:Long,sid:Long,haslike:Int)={
-        val q = "update USER_STORY set haslike=? where user_id=?,story_id=?"
-        using(connection.prepareStatement(q)) { statement =>
-            statement.setInt(1,haslike)
-            statement.setLong(2,uid)
-            statement.setLong(3,sid)
-            statement.executeUpdate()
+        val q = "update USER_STORY set haslike=? where user_id=? and story_id=?"
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                statement.setInt(1, haslike)
+                statement.setLong(2, uid)
+                statement.setLong(3, sid)
+                statement.executeUpdate()
+            }
         }
     }
 
@@ -175,11 +187,13 @@ class UserDao(connection:Connection) extends Dao {
         val q = s"""select fs.* from FEED_STORY fs join USER_STORY us on fs.story_id=us.story_id
                where us.user_id=$userId and us.haslike>0 order by fs.updated desc limit ${(pageNo)*pageSize},$pageSize""".stripMargin
         val result = new util.ArrayList[Story]
-        using(connection.prepareStatement(q)) { statement =>
-            using(statement.executeQuery(q)) { rs =>
-                while (rs.next) {
-                    val story = FeedDao.resultToStory(rs)
-                    result.add(story)
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                using(statement.executeQuery(q)) { rs =>
+                    while (rs.next) {
+                        val story = FeedDao.resultToStory(rs)
+                        result.add(story)
+                    }
                 }
             }
         }
@@ -189,12 +203,14 @@ class UserDao(connection:Connection) extends Dao {
     def getUserOpml(uid: Long): Option[Opml] = {
         val q = "select USER_ID,RAW from USER_OPML where user_id = ?"
         val result = new util.ArrayList[Opml]
-        using(connection.prepareStatement(q)) { statement =>
-            statement.setLong(1, uid)
-            using(statement.executeQuery()) { rs =>
-                while (rs.next) {
-                    val userOpml = resultToOpml(rs)
-                    result.add(userOpml)
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                statement.setLong(1, uid)
+                using(statement.executeQuery()) { rs =>
+                    while (rs.next) {
+                        val userOpml = resultToOpml(rs)
+                        result.add(userOpml)
+                    }
                 }
             }
         }
@@ -209,20 +225,24 @@ class UserDao(connection:Connection) extends Dao {
     def insertUserOmpl(uo:Opml)={
         val uos = uo.toStorage
         val q = "INSERT INTO USER_OPML (user_id,raw) VALUES (?,?)"
-        using(connection.prepareStatement(q)) { statement =>
-            statement.setLong(1,uos.id)
-            statement.setString(2,uos.raw)
-            statement.executeUpdate()
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                statement.setLong(1, uos.id)
+                statement.setString(2, uos.raw)
+                statement.executeUpdate()
+            }
         }
     }
 
     def updateUserOpml(uo:Opml)={
         val uos = uo.toStorage
         val q = "update USER_OPML set raw=? where user_id=?"
-        using(connection.prepareStatement(q)) { statement =>
-            statement.setString(1,uos.raw)
-            statement.setLong(2,uos.id)
-            statement.executeUpdate()
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                statement.setString(1, uos.raw)
+                statement.setLong(2, uos.id)
+                statement.executeUpdate()
+            }
         }
     }
 

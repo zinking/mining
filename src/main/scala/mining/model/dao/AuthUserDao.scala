@@ -12,16 +12,16 @@ import org.slf4j.{Logger, LoggerFactory}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.Duration
+import scala.concurrent.{ExecutionContext, Await, Future}
+import ExecutionContext.Implicits.global
 import scala.concurrent.{Await, Future}
 
 /**
  * Created by awang on 5/12/15.
  */
 object AuthUserDao {
-    def apply(db:String) = {
-        val conf:Config = ConfigFactory.load
-        val connection = JdbcConnectionFactory(conf.getConfig(db)).getPooledConnection()
-        new AuthUserDao(connection)
+    def apply()= {
+        new AuthUserDao()
     }
 
     def resultToAuthUser(rs: ResultSet): AuthUser = {
@@ -38,7 +38,7 @@ object AuthUserDao {
 
 }
 
-class AuthUserDao(connection:Connection) extends Dao {
+class AuthUserDao() extends Dao {
     import AuthUserDao._
     override def log: Logger = LoggerFactory.getLogger(classOf[AuthUserDao])
 
@@ -49,14 +49,16 @@ class AuthUserDao(connection:Connection) extends Dao {
 
     def updateAuthUser(user: AuthUser) : Future[Unit]=Future{
         val q = "update AUTH_USER set name=?,pass=?,apikey=?,lastlogin_from=?,lastlogin_time=? where user_id = ?"
-        using(connection.prepareStatement(q)) { statement =>
-            statement.setString(1, user.name)
-            statement.setString(2, user.pass)
-            statement.setString(3, user.apiKey)
-            statement.setString(4, user.lastLoginFrom)
-            statement.setTimestamp(5,new Timestamp(user.lastLoginTime.getTime))
-            statement.setLong(6,user.userId)
-            statement.executeUpdate()
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                statement.setString(1, user.name)
+                statement.setString(2, user.pass)
+                statement.setString(3, user.apiKey)
+                statement.setString(4, user.lastLoginFrom)
+                statement.setTimestamp(5, new Timestamp(user.lastLoginTime.getTime))
+                statement.setLong(6, user.userId)
+                statement.executeUpdate()
+            }
         }
     }
 
@@ -65,20 +67,22 @@ class AuthUserDao(connection:Connection) extends Dao {
         val hashedPass = md5( newUser.pass )
         val newUser2 = newUser.copy(apiKey=newKey,pass=hashedPass)
         var newUserId = 0L
-        val q = "INSERT INTO AUTH_USER(EMAIL,NAME,PASSS,APIKEY,LASTLOGIN_FROM,LASTLOGIN_TIME) VALUES (?,?,?,?,?,?)"
-        using(connection.prepareStatement(q,Statement.RETURN_GENERATED_KEYS)) { statement =>
-            statement.setString(1,newUser.email)
-            statement.setString(2,newUser.name)
-            statement.setString(3,hashedPass)
-            statement.setString(4,newKey)
-            statement.setString(5,newUser.lastLoginFrom)
-            statement.setTimestamp(6,new Timestamp(newUser.lastLoginTime.getTime))
-            statement.executeUpdate()
-            val newUserIdRS = statement.getGeneratedKeys
-            if(newUserIdRS.next){
-                newUserId = newUserIdRS.getLong(1)
-            } else{
-                throw new SQLException("Auth User Insertion failed")
+        val q = "INSERT INTO AUTH_USER(EMAIL,NAME,PASS,APIKEY,LASTLOGIN_FROM,LASTLOGIN_TIME) VALUES (?,?,?,?,?,?)"
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q, Statement.RETURN_GENERATED_KEYS)) { statement =>
+                statement.setString(1, newUser.email)
+                statement.setString(2, newUser.name)
+                statement.setString(3, hashedPass)
+                statement.setString(4, newKey)
+                statement.setString(5, newUser.lastLoginFrom)
+                statement.setTimestamp(6, new Timestamp(newUser.lastLoginTime.getTime))
+                statement.executeUpdate()
+                val newUserIdRS = statement.getGeneratedKeys
+                if (newUserIdRS.next) {
+                    newUserId = newUserIdRS.getLong(1)
+                } else {
+                    throw new SQLException("Auth User Insertion failed")
+                }
             }
         }
         newUser2.copy(userId=newUserId)
@@ -87,12 +91,14 @@ class AuthUserDao(connection:Connection) extends Dao {
     def getUserById(userId: Long): Future[Option[AuthUser]]=Future{
         val q = "select * from AUTH_USER where user_id = ? "
         val result = new util.ArrayList[AuthUser]
-        using(connection.prepareStatement(q)) { statement =>
-            statement.setLong(1, userId)
-            using(statement.executeQuery()) { rs =>
-                while (rs.next) {
-                    val feed = resultToAuthUser(rs)
-                    result.add(feed)
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                statement.setLong(1, userId)
+                using(statement.executeQuery()) { rs =>
+                    while (rs.next) {
+                        val feed = resultToAuthUser(rs)
+                        result.add(feed)
+                    }
                 }
             }
         }
@@ -107,12 +113,14 @@ class AuthUserDao(connection:Connection) extends Dao {
     def getUserByApikey(key:String):Option[AuthUser] ={
         val q = "select * from AUTH_USER where apikey = ? "
         val result = new util.ArrayList[AuthUser]
-        using(connection.prepareStatement(q)) { statement =>
-            statement.setString(1, key)
-            using(statement.executeQuery()) { rs =>
-                while (rs.next) {
-                    val feed = resultToAuthUser(rs)
-                    result.add(feed)
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                statement.setString(1, key)
+                using(statement.executeQuery()) { rs =>
+                    while (rs.next) {
+                        val feed = resultToAuthUser(rs)
+                        result.add(feed)
+                    }
                 }
             }
         }
@@ -127,12 +135,14 @@ class AuthUserDao(connection:Connection) extends Dao {
     def getUserByEmail(email: String): Future[Option[AuthUser]]=Future{
         val q = "select * from AUTH_USER where email = ? "
         val result = new util.ArrayList[AuthUser]
-        using(connection.prepareStatement(q)) { statement =>
-            statement.setString(1, email)
-            using(statement.executeQuery()) { rs =>
-                while (rs.next) {
-                    val feed = resultToAuthUser(rs)
-                    result.add(feed)
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                statement.setString(1, email)
+                using(statement.executeQuery()) { rs =>
+                    while (rs.next) {
+                        val feed = resultToAuthUser(rs)
+                        result.add(feed)
+                    }
                 }
             }
         }
@@ -148,13 +158,15 @@ class AuthUserDao(connection:Connection) extends Dao {
         val hashedPass = md5(rawPass)
         val q = "select * from AUTH_USER where email=? and pass=? "
         val result = new util.ArrayList[AuthUser]
-        using(connection.prepareStatement(q)) { statement =>
-            statement.setString(1, email)
-            statement.setString(2, hashedPass)
-            using(statement.executeQuery()) { rs =>
-                while (rs.next) {
-                    val feed = resultToAuthUser(rs)
-                    result.add(feed)
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                statement.setString(1, email)
+                statement.setString(2, hashedPass)
+                using(statement.executeQuery()) { rs =>
+                    while (rs.next) {
+                        val feed = resultToAuthUser(rs)
+                        result.add(feed)
+                    }
                 }
             }
         }

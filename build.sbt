@@ -18,12 +18,12 @@ libraryDependencies ++= Seq(
     "org.scalatest" %% "scalatest" % "2.2.1" % "test",
     "junit" % "junit" % "4.10" % "test",
     "org.scalaj" %% "scalaj-http" % "1.1.0",
-    "com.typesafe.slick" %% "slick" % "3.1.0",
     //"com.typesafe.slick" %% "slick-hikaricp" % "3.1.0",
     "mysql" % "mysql-connector-java" % "5.1.35",
     "io.spray" %%  "spray-json" % "1.3.2",
+    "com.zaxxer" % "HikariCP" % "2.4.3",
     //"com.zaxxer" % "HikariCP" % "2.4.1",
-    "org.apache.commons" % "commons-dbcp2" % "2.0.1"
+    "org.apache.commons" % "commons-dbcp2" % "2.1.1"
     //"com.h2database"     %  "h2"    % "1.3.166"
 )
     					   
