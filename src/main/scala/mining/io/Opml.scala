@@ -19,7 +19,7 @@ case class OpmlOutline(outline: List[OpmlOutline],
     }
 
     def containsFeed(fd: Feed): Boolean =
-        allFeedsUrl.contains(fd.url)
+        allFeedsUrl.contains(fd.xmlUrl)
 
     @BeanProperty
     lazy val allOutlines: List[OpmlOutline] = {
@@ -76,7 +76,7 @@ case class Opml(id: Long, outline: List[OpmlOutline]) {
 
     def toStorage: OpmlStorage = new OpmlStorage(id,toXml.toString())
 
-    def containsFeed(fd: Feed): Boolean = allFeedsUrl.contains(fd.url)
+    def containsFeed(fd: Feed): Boolean = allFeedsUrl.contains(fd.xmlUrl)
 
     def containsFeedUrl(feedUrl: String): Boolean = allFeedsUrl.contains(feedUrl)
 
@@ -94,14 +94,14 @@ object Opml {
     def apply(id: Long, dom: Elem) = {
         val outline1 = dom \ "body" \ "outline"
         val result = outline1.foldLeft[List[OpmlOutline]]( List[OpmlOutline]() )(( acc, node ) =>{
-    	val outline2 = node \ "outline"
-    	val result2 = outline2.foldLeft[List[OpmlOutline]]( List[OpmlOutline]() )(( acc2, node2 ) =>{
-    		val nid2 = OpmlOutline( List[OpmlOutline](), node2 )
-    		acc2 :+ nid2
-    	})
-    	val nid = OpmlOutline(result2, node )
-        acc :+ nid
-    })
+            val outline2 = node \ "outline"
+            val result2 = outline2.foldLeft[List[OpmlOutline]]( List[OpmlOutline]() )(( acc2, node2 ) =>{
+                val nid2 = OpmlOutline( List[OpmlOutline](), node2 )
+                acc2 :+ nid2
+            })
+            val nid = OpmlOutline(result2, node )
+            acc :+ nid
+        })
         new Opml(id, result)
     }
 }

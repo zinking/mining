@@ -10,6 +10,7 @@ import org.scalatest.BeforeAndAfterAll
 import mining.io.Opml
 import scala.xml.Elem
 import mining.io.UserFactory
+import scala.concurrent.ExecutionContext.Implicits.global
 
 @RunWith(classOf[JUnitRunner])
 class SlickIntegratedDAOSpec extends FunSuite
@@ -22,7 +23,7 @@ with BeforeAndAfterAll {
     val feed1 = "http://coolshell.cn/feed"
     val feed2 = "http://www.beedigital.net/blog/?feed=rss2"
 
-    override def afterAll = {
+    override def beforeAll() = {
         DaoTestUtil.truncateAllTables()
     }
 
@@ -57,11 +58,12 @@ with BeforeAndAfterAll {
 
     test("Should be able to sync feeds and get its stories") {
         val opml = userDAO.getUserOpml(userId).get
-        feedDAO.createOrUpdateFeedOPML(opml)
-        Thread.sleep(5000) //TODO: Should use future
-        val feed=feedDAO.loadFeedFromUrl("http://coolshell.cn/feed").get
-        feedDAO.read(feed).size should be > (5)
-        feedDAO.getOpmlStories(opml).size should be > (5)
+        feedDAO.createOrUpdateFeedOPML(opml) onSuccess {
+            case feeds =>
+                val feed = feeds.head
+                feedDAO.getStoriesFromFeed(feed).size should be > (5)
+                feedDAO.getOpmlStories(opml).size should be > (5)
+        }
     }
 
 }

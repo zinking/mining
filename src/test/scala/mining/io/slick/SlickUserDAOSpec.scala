@@ -8,9 +8,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import mining.util.{DaoTestUtil, UrlUtil}
 import scala.xml.Elem
-import mining.io.Opml
-import mining.io.UserFactory
-import mining.io.FeedTestPrepare
+import mining.io.{OpmlOutline, Opml, UserFactory, FeedTestPrepare}
 
 @RunWith(classOf[JUnitRunner])
 class SlickUserDAOSpec extends FunSuite
@@ -79,6 +77,24 @@ with FeedTestPrepare {
         val opml2: Opml = Opml(userId, dom)
         userDAO.setUserOpml(opml2)
         userDAO.getUserOpml(userId).get.outline.head.title should be("We need less...")
+    }
+
+    test("User should be able to add opml outline") {
+        val newFeedUrl = "http://add.mine.co"
+        val opmlOutline = OpmlOutline(List.empty,"AddedOutline",newFeedUrl,"rss","addblog",newFeedUrl)
+        userDAO.addOmplOutline(userId,opmlOutline)
+        val newOpml = userDAO.getUserOpml(userId).get
+        newOpml.outline.last.xmlUrl should be(newFeedUrl)
+    }
+
+    test("User should be able to remove opml outline") {
+        val newFeedUrl = "http://add.mine.co"
+        val curOpml = userDAO.getUserOpml(userId).get
+        val outlineCount = curOpml.outline.length
+        userDAO.removeOmplOutline(userId,newFeedUrl)
+        val newOpml = userDAO.getUserOpml(userId).get
+        newOpml.outline.last.xmlUrl should not be(newFeedUrl)
+        newOpml.outline.length should be(outlineCount-1)
     }
 
 

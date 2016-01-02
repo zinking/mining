@@ -254,14 +254,29 @@ class UserDao() extends Dao {
     }
 
     //Opml structure should be updated in client side and save the whole Opml here
-    def addOmplOutline(uid: Long, ol: OpmlOutline) = {
+    def addOmplOutline(uid: Long, ol: OpmlOutline):Unit = {
         getUserOpml(uid) match {
             case Some(uo) =>
-                val curopml = Opml(uid, uo.outline :+ ol)
-                updateUserOpml(curopml)
+                if (!ol.xmlUrl.isEmpty){
+                    val curOpmlOutlines = uo.outline.filter(_.xmlUrl==ol.xmlUrl)
+                    if (curOpmlOutlines.isEmpty){
+                        val curopml = Opml(uid, uo.outline :+ ol)
+                        updateUserOpml(curopml)
+                    }
+                }
             case None =>
                 val newopml = Opml(uid, List(ol))
                 insertUserOmpl(newopml)
+        }
+    }
+
+    def removeOmplOutline(uid: Long, xmlUrl:String):Unit = {
+        getUserOpml(uid) match {
+            case Some(uo) =>
+                val newOpmlOutlines = uo.outline.filter(_.xmlUrl!=xmlUrl)
+                val curopml = Opml(uid, newOpmlOutlines)
+                updateUserOpml(curopml)
+            case _ =>
         }
     }
 }

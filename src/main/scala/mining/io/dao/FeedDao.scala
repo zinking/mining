@@ -2,9 +2,8 @@ package mining.io.dao
 
 import java.sql._
 
-import com.mysql.jdbc.PreparedStatement
-import com.typesafe.config.{ConfigFactory, Config}
 import mining.io._
+import mining.parser.FeedParser
 import mining.util.UrlUtil
 import org.slf4j.{LoggerFactory, Logger}
 
@@ -27,7 +26,11 @@ object FeedDao {
 
     def resultToFeed(r:ResultSet): Feed ={
         Feed(
-            r.getString("URL"),
+            r.getString("XML_URL"),
+            r.getString("TITLE"),
+            r.getString("TEXT"),
+            r.getString("HTML_URL"),
+            r.getString("FEED_TYPE"),
             r.getLong("FEED_ID"),
             r.getString("LAST_ETAG"),
             new Date(r.getTimestamp("CHECKED").getTime),
@@ -58,36 +61,99 @@ with FeedReader {
     import FeedDao._
     override def log: Logger = LoggerFactory.getLogger(classOf[FeedDao])
 
+    /** get the descriptor from feed url */
+    override def loadFeedFromUrl(url: String): Option[Feed] = {
+        val q = s"select * from FEED_SOURCE where XML_URL=?"
+        val result = new util.ArrayList[Feed]
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                statement.setString(1,url)
+                using(statement.executeQuery()) { rs =>
+                    while (rs.next) {
+                        val feed = resultToFeed(rs)
+                        result.add(feed)
+                    }
+                }
+            }
+        }
+        result.asScala.toList.headOption
+    }
+
+    /** Get the descriptor from feed UID */
+    override def loadFeedFromUid(uid: String): Option[Feed] = {
+        ???
+    }
+
     /** Map from Feed UID to Feed Descriptor */
-    override lazy val feedsMap = loadFeeds()
+    //override lazy val feedsMap = loadFeeds()
     override def loadFeeds() = {
         val map = mutable.Map.empty[String, Feed]
         getAllFeeds.map { f =>
-            map += (UrlUtil.urlToUid(f.url) -> f)
+            //map += (UrlUtil.urlToUid(f.xmlUrl) -> f)
+            map += (f.xmlUrl-> f)
         }
         map
     }
 
-    override def write(feed: Feed) = {
+    override def write(feed: Feed): Feed = {
         feed.synchronized {
-            insertOrUpdateFeed(feed)
+            val newFeed = insertOrUpdateFeed(feed)
             for(story<-feed.unsavedStories){
-                insertFeedStory(feed,story)
+                insertFeedStory(newFeed,story)
             }
             feed.unsavedStories.clear()
+            newFeed
         }
     }
 
-    override def createOrUpdateFeed(url: String): Feed = {
-        val feed = createOrGetFeedDescriptor(url)
-        feed.sync()
-        write(feed)
-        feedsMap += UrlUtil.urlToUid(feed.url) -> feed
-        feed
+    def getOnlyNewStories(parsedStories:mutable.ListBuffer[Story],lastUrl:String):mutable.ListBuffer[Story] = {
+        //val sortedStories = parsedStories.sortBy(_.published)(Ordering[Date].reverse)
+        //assumption is it's already reverse sorted
+        parsedStories.takeWhile(_.link != lastUrl)
     }
 
-    override def read(feed: Feed, pageSize: Int = 10, pageNo: Int = 0): Iterable[Story] = {
-        val q = s"select * from FEED_STORY where feed_id=${feed.feedId} order by updated desc limit ${(pageNo)*pageSize},$pageSize "
+    override def createOrUpdateFeed(url: String): Feed = {
+        loadFeedFromUrl(url) match {
+            case None =>
+                val feed = FeedFactory.newFeed(url)
+                val newFeed = FeedParser(feed).syncFeed()
+                val newStories = newFeed.unsavedStories
+                log.info("parsed {} total stories",newFeed.unsavedStories.size)
+                val finalFeed = newFeed.copy(
+                    feedId = feed.feedId,
+                    xmlUrl = newFeed.outline.xmlUrl,
+                    text = newFeed.outline.text,
+                    htmlUrl = newFeed.outline.htmlUrl,
+                    title = newFeed.outline.title,
+                    feedType = newFeed.outline.outlineType,
+                    lastUrl = newStories.headOption.map(_.link).getOrElse(""),
+                    checked = new Date
+                )
+                finalFeed.unsavedStories ++= newStories
+                log.info("persisted {} new stories",newStories.size)
+                write(finalFeed)
+            case Some(feed) =>
+                val newFeed = FeedParser(feed).syncFeed()
+                log.info("parsed {} total stories",newFeed.unsavedStories.size)
+                val newStories = getOnlyNewStories(newFeed.unsavedStories,feed.lastUrl)
+                newStories.headOption.map(_.link) match{
+                    case Some(newLastUrl) =>
+                        val finalFeed = newFeed.copy(lastUrl=newLastUrl,checked = new Date)
+                        finalFeed.unsavedStories.clear()
+                        finalFeed.unsavedStories ++= newStories
+                        log.info("persisted {} new stories",newStories.size)
+                        write(finalFeed)
+                    case None =>
+                        log.info("nothing to persist as nothing new")
+                        val finalFeed = newFeed.copy(checked = new Date)
+                        finalFeed
+                }
+
+        }
+    }
+
+    override def getStoriesFromFeed(feed: Feed, pageSize: Int = 10, pageNo: Int = 0): Iterable[Story] = {
+        val q = s"select * from FEED_STORY where feed_id=${feed.feedId} order by updated desc limit ${pageNo *pageSize},$pageSize "
         val result = new util.ArrayList[Story]
         using(JdbcConnectionFactory.getPooledConnection){connection=>
             using(connection.prepareStatement(q)) { statement =>
@@ -99,7 +165,6 @@ with FeedReader {
                 }
             }
         }
-
         result.asScala.toList
     }
 
@@ -120,6 +185,8 @@ with FeedReader {
         }
         result.asScala.toList
     }
+
+
 
     def getAllFutureFeeds:Future[Iterable[Feed]] = Future{
         val q = "select * from FEED_SOURCE "
@@ -147,10 +214,10 @@ with FeedReader {
         }
     }
     private def updateFeed(feed:Feed):Feed={
-        val q = s"update FEED_SOURCE set url=?,last_etag=?,checked=?,last_url=?,encoding=? where feed_id = ${feed.feedId}"
+        val q = s"update FEED_SOURCE set xml_url=?,last_etag=?,checked=?,last_url=?,encoding=? where feed_id = ${feed.feedId}"
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             using(connection.prepareStatement(q)) { statement =>
-                statement.setString(1, feed.url)
+                statement.setString(1, feed.xmlUrl)
                 statement.setString(2, feed.lastEtag)
                 statement.setTimestamp(3, new Timestamp(feed.checked.getTime))
                 statement.setString(4, feed.lastUrl)
@@ -162,28 +229,35 @@ with FeedReader {
     }
 
     private def insertFeed(feed:Feed):Feed={
-        val q = "INSERT INTO FEED_SOURCE (URL,LAST_ETAG,CHECKED,LAST_URL,ENCODING) VALUES (?,?,?,?,?)"
+        val q = "INSERT INTO FEED_SOURCE (XML_URL,HTML_URL,TITLE,TEXT,FEED_TYPE,LAST_ETAG,CHECKED,LAST_URL,ENCODING) VALUES (?,?,?,?,?,?,?,?,?)"
+        val result = new util.ArrayList[Feed]
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             using(connection.prepareStatement(q, Statement.RETURN_GENERATED_KEYS)) { statement =>
-                statement.setString(1, feed.url)
-                statement.setString(2, feed.lastEtag)
-                statement.setTimestamp(3, new Timestamp(feed.checked.getTime))
-                statement.setString(4, feed.lastUrl)
-                statement.setString(5, feed.encoding)
+                statement.setString(1, feed.xmlUrl)
+                statement.setString(2, feed.htmlUrl)
+                statement.setString(3, feed.title)
+                statement.setString(4, feed.text)
+                statement.setString(5, feed.feedType)
+                statement.setString(6, feed.lastEtag)
+                statement.setTimestamp(7, new Timestamp(feed.checked.getTime))
+                statement.setString(8, feed.lastUrl)
+                statement.setString(9, feed.encoding)
                 statement.executeUpdate()
                 val newFeedIdRS = statement.getGeneratedKeys
                 if (newFeedIdRS.next) {
-                    feed.feedId = newFeedIdRS.getLong(1)
+                    val newFeed = feed.copy(feedId=newFeedIdRS.getLong(1))
+                    result.add(newFeed)
                 } else {
                     throw new SQLException("Feed Insertion failed")
                 }
             }
         }
-        feed
+        result.get(0)
     }
 
     def insertFeedStory(feed:Feed,story:Story):Story = {
         val q = "INSERT INTO FEED_STORY (feed_id,title,link,published,updated,author,description,content) VALUES (?,?,?,?,?,?,?,?)"
+        val result = new util.ArrayList[Story]
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             using(connection.prepareStatement(q, Statement.RETURN_GENERATED_KEYS)) { statement =>
                 statement.setLong(1, feed.feedId)
@@ -197,13 +271,15 @@ with FeedReader {
                 statement.executeUpdate()
                 val newStoryIdRS = statement.getGeneratedKeys
                 if (newStoryIdRS.next) {
-                    story.id = newStoryIdRS.getLong(1)
+                    val newStoryId = newStoryIdRS.getLong(1)
+                    val newStory = story.copy(id=newStoryId)
+                    result.add(newStory)
                 } else {
                     throw new SQLException("story Insertion failed")
                 }
             }
         }
-        story
+        result.get(0)
     }
 
 
@@ -212,19 +288,30 @@ with FeedReader {
             val fd = loadFeedFromUrl(node)
             fd match {
                 case Some(feed) =>
-                    val ss = read(feed,pageSize,pageNo)
+                    val ss = getStoriesFromFeed(feed,pageSize,pageNo)
                     acc ++ ss
                 case _ => acc
             }
         })
     }
 
+    def getOpmlFeeds(opml: Opml): Iterable[Feed] = {
+        opml.allFeedsUrl.foldLeft(List[Feed]())((acc, node) => {
+            val fd = loadFeedFromUrl(node)
+            fd match {
+                case Some(feed) =>
+                    acc :+ feed
+                case _ => acc
+            }
+        })
+    }
+
     def getFeedStories(feedUrl: String, pageSize: Int = 10, pageNo: Int = 0): Iterable[Story] = {
-        //val fd = loadFeedFromUrl(feedUrl)
-        val fd = feedsMap.get(UrlUtil.urlToUid(feedUrl))
+        val fd = loadFeedFromUrl(feedUrl)
+        //val fd = feedsMap.get(UrlUtil.urlToUid(feedUrl))
         fd match {
             case Some(feed) =>
-                read(feed,pageSize,pageNo)
+                getStoriesFromFeed(feed,pageSize,pageNo)
             case None => List.empty[Story]
         }
     }
@@ -261,5 +348,11 @@ with FeedReader {
             }
         }
         result.get(0)
+    }
+
+    def getRawOutlineFromFeed(xmlUrl:String):Option[OpmlOutline] = {
+        loadFeedFromUrl(xmlUrl).map{ feed=>
+            OpmlOutline(List.empty,feed.title,feed.xmlUrl,feed.feedType,feed.text,feed.htmlUrl)
+        }
     }
 }

@@ -21,34 +21,29 @@ class FeedParser(val feed: Feed) {
     private val logger = LoggerFactory.getLogger(classOf[FeedParser])
 
 
-    val url = feed.url
+    val url = feed.xmlUrl
 
     /** Sync latest stories which are not in current feed */
-    def syncFeed(): Iterable[Story] = {
-        val content = Spider().getFeedContent(feed)
+    def syncFeed(): Feed = {
+        val (newFeed, content) = Spider().syncFeedForContent(feed)
         val newSyndFeed = syndFeedFromXML(content)
 
         /*title,xmlUrl,outType,text,htmlUrl*/
-        feed.outline = OpmlOutline(newSyndFeed.getTitle(), url, newSyndFeed.getFeedType(),
-            newSyndFeed.getDescription(), newSyndFeed.getLink())
+        newFeed.outline = OpmlOutline(newSyndFeed.getTitle, url, newSyndFeed.getFeedType,
+            newSyndFeed.getDescription, newSyndFeed.getLink)
 
-        val newEntries = newSyndFeed.getEntries().asScala.map(_.asInstanceOf[SyndEntry])
-        val newStories = newEntries.map(StoryFactory.fromSyndFeed(_, feed)).takeWhile(_.link != feed.lastUrl)
+        val parsedEntries = newSyndFeed.getEntries.asScala.map(_.asInstanceOf[SyndEntry])
+        val parsedStories = parsedEntries.map(StoryFactory.fromSyndFeed(_, feed))
+        newFeed.unsavedStories ++= parsedStories
 
-        //Update feed's last story URL
-        newStories.headOption match {
-            case Some(story) => feed.lastUrl = story.link
-            case None =>
-        }
-
-        newStories
+        newFeed
     }
 
     /** Getting a Rome SyndFeed object from XML */
     protected def syndFeedFromXML(feedXML: String): SyndFeed = {
         try {
             val builder = new SAXBuilder()
-            val input = new ByteArrayInputStream(feedXML.getBytes(feed.encoding));
+            val input = new ByteArrayInputStream(feedXML.getBytes(feed.encoding))
             val dom = builder.build(input)
             new SyndFeedInput().build(dom)
         }
