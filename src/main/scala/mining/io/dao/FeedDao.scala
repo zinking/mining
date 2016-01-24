@@ -112,7 +112,12 @@ with FeedReader {
         parsedStories.takeWhile(_.link != lastUrl)
     }
 
-    override def createOrUpdateFeed(url: String): Feed = {
+    /**
+     * create feed could return option non as url invalid or not properly processed by spider
+     * @param url the url for the spider to fetch
+     * @return option of the feed
+     */
+    override def createOrUpdateFeed(url: String): Option[Feed] = {
         loadFeedFromUrl(url) match {
             case None =>
                 val feed = FeedFactory.newFeed(url)
@@ -120,18 +125,19 @@ with FeedReader {
                 val newStories = newFeed.unsavedStories
                 log.info("parsed {} total stories",newFeed.unsavedStories.size)
                 val finalFeed = newFeed.copy(
-                    feedId = feed.feedId,
-                    xmlUrl = newFeed.outline.xmlUrl,
-                    text = newFeed.outline.text,
-                    htmlUrl = newFeed.outline.htmlUrl,
-                    title = newFeed.outline.title,
-                    feedType = newFeed.outline.outlineType,
                     lastUrl = newStories.headOption.map(_.link).getOrElse(""),
                     checked = new Date
                 )
                 finalFeed.unsavedStories ++= newStories
                 log.info("persisted {} new stories",newStories.size)
-                write(finalFeed)
+                if (newStories.nonEmpty) {
+                    val feed = write(finalFeed)
+                    Some(feed)
+                }
+                else{
+                    None
+                }
+
             case Some(feed) =>
                 val newFeed = FeedParser(feed).syncFeed()
                 log.info("parsed {} total stories",newFeed.unsavedStories.size)
@@ -142,11 +148,12 @@ with FeedReader {
                         finalFeed.unsavedStories.clear()
                         finalFeed.unsavedStories ++= newStories
                         log.info("persisted {} new stories",newStories.size)
-                        write(finalFeed)
+                        val feed = write(finalFeed)
+                        Some(feed)
                     case None =>
                         log.info("nothing to persist as nothing new")
                         val finalFeed = newFeed.copy(checked = new Date)
-                        finalFeed
+                        Some(finalFeed)
                 }
 
         }

@@ -34,8 +34,8 @@ with BeforeAndAfterAll {
         val feed1 = feedDAO.createOrUpdateFeed(url1)
         val feed2 = feedDAO.createOrUpdateFeed(url2)
 
-        feed1.feedId should be(1)
-        feed2.feedId should be(2)
+        feed1.get.feedId should be(1)
+        feed2.get.feedId should be(2)
     }
 
     test("Load all feeds and load feed from URL method should get the correct feed") {
@@ -61,9 +61,9 @@ with BeforeAndAfterAll {
 
     test("Create or update feed method should be able to sync and persist the feed/stories") {
         val feed = feedDAO.createOrUpdateFeed(url2)
-        feed.unsavedStories.size should be(0)
-        feed.checked should be > new Date(0)
-        feed.lastUrl should not be ""
+        feed.get.unsavedStories.size should be(0)
+        feed.get.checked should be > new Date(0)
+        feed.get.lastUrl should not be ""
     }
 
     test("Read method should be able to read those stories just persisted") {
@@ -76,7 +76,7 @@ with BeforeAndAfterAll {
     }
 
     test("parse a url second time won't duplicate stories") {
-        val feed2 = feedDAO.createOrUpdateFeed(url2)
+        val feed2 = feedDAO.createOrUpdateFeed(url2).get
         val stories = feedDAO.getStoriesFromFeed(feed2)
         stories.size should be(10)
     }
@@ -93,11 +93,11 @@ with BeforeAndAfterAll {
 
     test("Create or update feed method should be able to create correct outline") {
         val feed = feedDAO.createOrUpdateFeed(url1)
-        feed.unsavedStories.size should be(0)
-        feed.checked should be > new Date(0)
-        feed.lastUrl should not be ""
-        feed.outline.title should not be ""
-        feed.outline.text should not be ""
+        feed.get.unsavedStories.size should be(0)
+        feed.get.checked should be > new Date(0)
+        feed.get.lastUrl should not be ""
+        feed.get.getOpmlOutline.title should not be ""
+        feed.get.getOpmlOutline.text should not be ""
     }
 
     test("get new story only should distinguish new stories"){

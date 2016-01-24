@@ -7,11 +7,22 @@ RUN unzip typesafe-activator-1.3.6.zip -d /
 RUN rm typesafe-activator-1.3.6.zip 
 RUN chmod a+x /activator-dist-1.3.6/activator
 ENV PATH $PATH:/activator-dist-1.3.6
+ENV env prod
+
+RUN mkdir -p /mining-solution/mining-play
+#RUN ln -sf /dev/stdout /mining-solution/mining-play/log/application.log
+#RUN ln -sf /dev/stderr /mining-solution/mining-play/log/application.log
 
 EXPOSE 9000 9000
-RUN mkdir -p /mining-solution/mining-play
+
+ADD start.sh /var/tmp/
+
 WORKDIR /mining-solution/mining-play
-CMD ["activator", "run"]
+#CMD ["activator", "run"]
+CMD bash /var/tmp/start.sh
 
 
-#docker run -d -v /home/awang/workspace/mining-solution/mining-play:/mining-solution/mining-play:rw -p 80:9000 mining-image
+
+#docker run -d -v /home/awang/workspace/mining-solution/mining-play:/mining-solution/mining-play:rw -p 9000:9000 zinking:mine
+#docker run -d -v /Users/awang/os/zhenw/mining-solution/mining-play:/mining-solution/mining-play:rw -p 9000:9000 zinking:mine
+#docker run -i -t -d -v /Users/awang/os/zhenw/mining-solution/mining-play:/mining-solution/mining-play:rw -p 9000:9000  --entrypoint /bin/bash zinking:mine

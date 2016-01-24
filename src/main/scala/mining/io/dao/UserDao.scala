@@ -273,7 +273,7 @@ class UserDao() extends Dao {
     def removeOmplOutline(uid: Long, xmlUrl:String):Unit = {
         getUserOpml(uid) match {
             case Some(uo) =>
-                val newOpmlOutlines = uo.outline.filter(_.xmlUrl!=xmlUrl)
+                val newOpmlOutlines = uo.outline.filter(!_.xmlUrl.startsWith(xmlUrl))
                 val curopml = Opml(uid, newOpmlOutlines)
                 updateUserOpml(curopml)
             case _ =>

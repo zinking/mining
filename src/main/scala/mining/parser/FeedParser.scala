@@ -28,15 +28,25 @@ class FeedParser(val feed: Feed) {
         val (newFeed, content) = Spider().syncFeedForContent(feed)
         val newSyndFeed = syndFeedFromXML(content)
 
-        /*title,xmlUrl,outType,text,htmlUrl*/
-        newFeed.outline = OpmlOutline(newSyndFeed.getTitle, url, newSyndFeed.getFeedType,
-            newSyndFeed.getDescription, newSyndFeed.getLink)
-
         val parsedEntries = newSyndFeed.getEntries.asScala.map(_.asInstanceOf[SyndEntry])
         val parsedStories = parsedEntries.map(StoryFactory.fromSyndFeed(_, feed))
-        newFeed.unsavedStories ++= parsedStories
 
-        newFeed
+
+        if (newFeed.title.isEmpty) { //first time synced
+            val updatedFeed = newFeed.copy(
+                title = newSyndFeed.getTitle,
+                text  = newSyndFeed.getDescription,
+                htmlUrl = newSyndFeed.getLink,
+                feedType = newSyndFeed.getFeedType
+            )
+            updatedFeed.unsavedStories ++= parsedStories
+            updatedFeed
+        }
+        else {
+            newFeed.unsavedStories ++= parsedStories
+            newFeed
+        }
+
     }
 
     /** Getting a Rome SyndFeed object from XML */

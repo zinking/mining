@@ -4,7 +4,6 @@ import java.sql.{SQLException, Connection}
 
 import com.typesafe.config.{ConfigFactory, Config}
 import com.zaxxer.hikari.HikariDataSource
-import org.apache.commons.dbcp2.BasicDataSource
 import org.slf4j.{LoggerFactory, Logger}
 import scala.language.reflectiveCalls
 import scala.util.Properties

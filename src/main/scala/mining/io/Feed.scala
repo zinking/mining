@@ -20,7 +20,17 @@ case class Feed(xmlUrl: String,
                 lastUrl: String,
                 encoding: String) {
     /** OPML outline for the feed */
-    var outline = OpmlOutline.empty()
+
+    def getOpmlOutline: OpmlOutline = {
+      OpmlOutline(
+        List.empty,
+        title,
+        xmlUrl,
+        feedType,
+        text,
+        htmlUrl
+      )
+    }
 
     /** Stories sync from RSS but not persisted yet */
     val unsavedStories = mutable.ListBuffer.empty[Story]
