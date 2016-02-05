@@ -5,7 +5,7 @@ import scala.xml.Node
 import scala.xml.XML
 import scala.beans.BeanProperty
 
-case class OpmlOutline(outline: List[OpmlOutline],
+case class OpmlOutline(outlines: List[OpmlOutline],
                        title: String,
                        xmlUrl: String,
                        outlineType: String,
@@ -14,7 +14,7 @@ case class OpmlOutline(outline: List[OpmlOutline],
 
     def toXml: Node = {
         <outline text={text} title={title} type={outlineType} xmlUrl={xmlUrl} htmlUrl={xmlUrl}>
-            {for {o <- outline} yield o.toXml}
+            {for {o <- outlines} yield o.toXml}
         </outline>
     }
 
@@ -23,14 +23,38 @@ case class OpmlOutline(outline: List[OpmlOutline],
 
     @BeanProperty
     lazy val allOutlines: List[OpmlOutline] = {
-        if (outline.isEmpty) List(this)
-        else outline.foldLeft(List.empty[OpmlOutline])((acc, node) => acc ++ node.allOutlines)
+        if (outlines.isEmpty) List(this)
+        else outlines.foldLeft(List.empty[OpmlOutline])((acc, node) => acc ++ node.allOutlines)
     }
 
 
     @BeanProperty
     lazy val allFeedsUrl: List[String] =
         allOutlines.map(_.xmlUrl)
+
+    def mergeWith(maybeThat: Option[OpmlOutline]):OpmlOutline = {
+        //pre-requisite. the two can be combined
+        maybeThat match {
+            case Some(that) =>
+                if (outlines.nonEmpty) {
+                    // the case where two folders should be combined
+                    val thisMap = OpmlOutline.outlines2Map(outlines)
+                    val thatMap = OpmlOutline.outlines2Map(that.outlines)
+
+                    val combined:Map[String,OpmlOutline] = thisMap ++ thatMap.map { case (k, v) =>
+                        k -> thisMap.getOrElse(k, v)
+                    }
+                    val combinedList = combined.values.toList
+                    this.copy(outlines=combinedList)
+                } else {
+                    // the case where one feed gets merged with another
+                    this
+                }
+            case None =>
+                this
+        }
+
+    }
 
 }
 
@@ -46,8 +70,22 @@ object OpmlOutline {
         new OpmlOutline(List[OpmlOutline](), title, xmlUrl, outType, text, htmlUrl)
     }
 
-    def empty(): OpmlOutline = {
+    def empty() = {
         new OpmlOutline(List[OpmlOutline](), "", "", "", "", "")
+    }
+
+    /**
+     * function to convert outlines to map from unique indentifier to the outline
+     */
+    //val outlines2Map : List[OpmlOutline] => Map[String,OpmlOutline] = (outlines:List[OpmlOutline]) => {
+    def outlines2Map(outlines:List[OpmlOutline]):Map[String,OpmlOutline] = {
+        outlines map { outline=>
+            if (outline.outlines.isEmpty) { //this is a feed
+                outline.xmlUrl->outline
+            } else {
+                outline.title->outline
+            }
+        } toMap
     }
 }
 
@@ -59,16 +97,14 @@ case class OpmlStorage(id: Long, raw: String) {
 }
 
 
-case class Opml(id: Long, outline: List[OpmlOutline]) {
+case class Opml(id: Long, outlines: List[OpmlOutline]) {
     def toXml: Elem = {
         <opml version="1.0">
             <head>
-                <title>
-                    {id}
-                    's subscription</title>
+                <title> {id} 's subscription</title>
             </head>
             <body>
-                {for {o <- outline}
+                {for {o <- outlines}
                 yield o.toXml}
             </body>
         </opml>
@@ -82,11 +118,25 @@ case class Opml(id: Long, outline: List[OpmlOutline]) {
 
     @BeanProperty
     lazy val allOutlines: List[OpmlOutline] =
-        outline.foldLeft(List.empty[OpmlOutline])((acc, node) => acc ++ node.allOutlines)
+        outlines.foldLeft(List.empty[OpmlOutline])((acc, node) => acc ++ node.allOutlines)
 
     @BeanProperty
     lazy val allFeedsUrl: List[String] =
         allOutlines.map(_.xmlUrl)
+        
+    def mergeWith(thatOpml: Opml) :Opml = {
+        // two cases to merge
+        // first: merge folder with folder
+        // collapse feed
+        val thisMap = OpmlOutline.outlines2Map(outlines)
+        val thatMap = OpmlOutline.outlines2Map(thatOpml.outlines)
+
+        val combined = thisMap ++ thatMap.map{ case (k,v) =>
+            k -> v.mergeWith(thisMap.get(k))
+        } values
+
+        this.copy(outlines=combined.toList)
+    }
 
 }
 

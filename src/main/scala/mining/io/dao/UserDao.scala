@@ -253,14 +253,26 @@ class UserDao() extends Dao {
         }
     }
 
+    def mergeWithUserOpml(uo: Opml): Opml = {
+        getUserOpml(uo.id) match {
+            case Some(uoo) =>
+                val merged = uoo.mergeWith(uo)
+                updateUserOpml(merged)
+                merged
+            case None =>
+                setUserOpml(uo)
+                uo
+        }
+    }
+
     //Opml structure should be updated in client side and save the whole Opml here
     def addOmplOutline(uid: Long, ol: OpmlOutline):Unit = {
         getUserOpml(uid) match {
             case Some(uo) =>
                 if (!ol.xmlUrl.isEmpty){
-                    val curOpmlOutlines = uo.outline.filter(_.xmlUrl==ol.xmlUrl)
+                    val curOpmlOutlines = uo.outlines.filter(_.xmlUrl==ol.xmlUrl)
                     if (curOpmlOutlines.isEmpty){
-                        val curopml = Opml(uid, uo.outline :+ ol)
+                        val curopml = Opml(uid, uo.outlines :+ ol)
                         updateUserOpml(curopml)
                     }
                 }
@@ -273,7 +285,7 @@ class UserDao() extends Dao {
     def removeOmplOutline(uid: Long, xmlUrl:String):Unit = {
         getUserOpml(uid) match {
             case Some(uo) =>
-                val newOpmlOutlines = uo.outline.filter(!_.xmlUrl.startsWith(xmlUrl))
+                val newOpmlOutlines = uo.outlines.filter(!_.xmlUrl.startsWith(xmlUrl))
                 val curopml = Opml(uid, newOpmlOutlines)
                 updateUserOpml(curopml)
             case _ =>

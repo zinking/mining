@@ -55,7 +55,7 @@ with FeedTestPrepare {
         val opml = userDAO.getUserOpml(userId).get
 
         opml.id should be(userId)
-        val o1 = opml.outline.head
+        val o1 = opml.outlines.head
         o1.title should be("We need more...")
     }
 
@@ -76,7 +76,7 @@ with FeedTestPrepare {
             </opml>
         val opml2: Opml = Opml(userId, dom)
         userDAO.setUserOpml(opml2)
-        userDAO.getUserOpml(userId).get.outline.head.title should be("We need less...")
+        userDAO.getUserOpml(userId).get.outlines.head.title should be("We need less...")
     }
 
     test("User should be able to add opml outline") {
@@ -84,17 +84,17 @@ with FeedTestPrepare {
         val opmlOutline = OpmlOutline(List.empty,"AddedOutline",newFeedUrl,"rss","addblog",newFeedUrl)
         userDAO.addOmplOutline(userId,opmlOutline)
         val newOpml = userDAO.getUserOpml(userId).get
-        newOpml.outline.last.xmlUrl should be(newFeedUrl)
+        newOpml.outlines.last.xmlUrl should be(newFeedUrl)
     }
 
     test("User should be able to remove opml outline") {
         val newFeedUrl = "http://add.mine.co"
         val curOpml = userDAO.getUserOpml(userId).get
-        val outlineCount = curOpml.outline.length
+        val outlineCount = curOpml.outlines.length
         userDAO.removeOmplOutline(userId,newFeedUrl)
         val newOpml = userDAO.getUserOpml(userId).get
-        newOpml.outline.last.xmlUrl should not be(newFeedUrl)
-        newOpml.outline.length should be(outlineCount-1)
+        newOpml.outlines.last.xmlUrl should not be(newFeedUrl)
+        newOpml.outlines.length should be(outlineCount-1)
     }
 
 

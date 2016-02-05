@@ -17,6 +17,8 @@ import scala.collection.JavaConverters._
 import scala.language.reflectiveCalls
 
 /**
+ * Feed database access object
+ *
  * Created by awang on 5/12/15.
  */
 object FeedDao {
@@ -160,7 +162,7 @@ with FeedReader {
     }
 
     override def getStoriesFromFeed(feed: Feed, pageSize: Int = 10, pageNo: Int = 0): Iterable[Story] = {
-        val q = s"select * from FEED_STORY where feed_id=${feed.feedId} order by updated desc limit ${pageNo *pageSize},$pageSize "
+        val q = s"select * from FEED_STORY where feed_id=${feed.feedId} order by updated desc, story_id desc limit ${pageNo *pageSize},$pageSize "
         val result = new util.ArrayList[Story]
         using(JdbcConnectionFactory.getPooledConnection){connection=>
             using(connection.prepareStatement(q)) { statement =>
@@ -211,12 +213,26 @@ with FeedReader {
         result.asScala.toList
     }
 
+    /**
+     * verify the feed doesn't exist yet and create it
+     * @param feed feed to be created
+     * @return created feed in system
+     */
+    def verifyAndCreateFeed( feed:Feed ): Feed = {
+        val feedOption = loadFeedFromUrl(feed.xmlUrl)
+        feedOption match {
+            case Some(fd) =>
+                fd
+            case None =>
+                insertFeed(feed)
+        }
+    }
 
-    def insertOrUpdateFeed(feed:Feed):Feed={
-        if(feed.feedId<=0){
+    def insertOrUpdateFeed(feed: Feed): Feed = {
+        if (feed.feedId <= 0) {
             insertFeed(feed)
         }
-        else{
+        else {
             updateFeed(feed)
         }
     }

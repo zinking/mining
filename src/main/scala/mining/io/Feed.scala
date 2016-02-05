@@ -42,6 +42,52 @@ case class Feed(xmlUrl: String,
 }
 
 object FeedFactory {
+  /**
+   * create new empty feed using only url
+   * @param url url of the feed
+   * @return empty feed
+   */
     def newFeed(url: String) = new Feed(url,"","",url,"RSS", 0L, "", new Date, "", "UTF-8")
+
+
+  /**
+   * function object to convert an flat opmloutline to feed
+   */
+    val outline2Feed: OpmlOutline=>Feed = (outline:OpmlOutline) => {
+        new Feed(
+            outline.xmlUrl, outline.title,
+            outline.text, outline.htmlUrl,
+            outline.outlineType, 0L, "",
+            new Date, "", "UTF-8"
+        )
+    }
+
+  /**
+   * map an opmloutline to a list of feeds
+   * flat opml outline strucutre will be mapped to list with single element
+   * folder opml outline structure will be mapped to list of feeds
+   * @param outline the opml outline
+   * @return a list of feeeds
+   */
+    def newFeeds(outline: OpmlOutline): List[Feed] = {
+        if (outline.outlines.isEmpty) {
+            List( outline2Feed(outline) )
+        } else {
+            outline.outlines.map{ outline=>
+                outline2Feed(outline)
+            }
+        }
+    }
+
+  /**
+   * create a list feed using opml object
+   * @param opml opml object
+   * @return a list of feeds
+   */
+    def newFeeds(opml: Opml): List[Feed] = {
+        opml.outlines.flatMap { outline =>
+          newFeeds(outline)
+        }
+    }
 }
 
