@@ -1,5 +1,7 @@
 package mining.io
 
+import java.util.Date
+
 import spray.json._
 import DefaultJsonProtocol._
 
@@ -34,9 +36,10 @@ case class User
 
 }
 
-case class UserStory
+case class UserStat
 (
     userId: Long,
+    feedId: Long,
     storyId: Long,
     hasRead: Int,
     hasLike: Int,
@@ -47,6 +50,20 @@ case class UserStory
     //if an entry is not in ReadStory then it's *definitely* unread
     //if an entry is marked as unread, it is different from unread mentioned above
 }
+
+case class UserFeedReadStat
+(
+    userId: Long,
+    feedId: Long,
+    unreadCount: Long,
+    startFrom: Date
+)
+
+case class UserFollow
+(
+    userId: Long,
+    following: Long
+)
 
 
 object UserFactory {

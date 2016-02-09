@@ -5,15 +5,22 @@ import com.sun.syndication.feed.synd.SyndEntry
 import scala.collection.JavaConverters._
 import com.sun.syndication.feed.synd.SyndContent
 
-case class Story(id: Long,
-                 feedId: Long,
-                 title: String,
-                 link: String,
-                 published: Date,
-                 updated: Date,
-                 author: String,
-                 description: String,
-                 content: String) {
+case class Story(
+    id: Long,
+    feedId: Long,
+    title: String,
+    link: String,
+    published: Date,
+    updated: Date,
+    author: String,
+    description: String,
+    content: String
+    ) {
+
+    def getSummary:String = {
+      val nn = Math.min(1000,description.length)
+      description.substring(0,nn)
+    }
 }
 
 object StoryFactory {

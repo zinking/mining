@@ -162,7 +162,8 @@ with FeedReader {
     }
 
     override def getStoriesFromFeed(feed: Feed, pageSize: Int = 10, pageNo: Int = 0): Iterable[Story] = {
-        val q = s"select * from FEED_STORY where feed_id=${feed.feedId} order by updated desc, story_id desc limit ${pageNo *pageSize},$pageSize "
+        val q = s"select * from FEED_STORY where feed_id=${feed.feedId} " +
+        s"order by updated desc, story_id desc limit ${pageNo*pageSize},$pageSize "
         val result = new util.ArrayList[Story]
         using(JdbcConnectionFactory.getPooledConnection){connection=>
             using(connection.prepareStatement(q)) { statement =>
@@ -331,7 +332,6 @@ with FeedReader {
 
     def getFeedStories(feedUrl: String, pageSize: Int = 10, pageNo: Int = 0): Iterable[Story] = {
         val fd = loadFeedFromUrl(feedUrl)
-        //val fd = feedsMap.get(UrlUtil.urlToUid(feedUrl))
         fd match {
             case Some(feed) =>
                 getStoriesFromFeed(feed,pageSize,pageNo)
