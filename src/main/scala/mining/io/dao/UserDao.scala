@@ -366,6 +366,19 @@ class UserDao() extends Dao {
     }
 
     /**
+     * set user has read the story, create record if absent
+     * @param userId user id
+     * @param fdid feed id
+     */
+    def setUserFeedStat(userId: Long, fdid: Long): Unit = {
+        getUserStat(userId, fdid, 0) match {
+            case Some(us) =>
+            case None =>
+                insertUserStat(UserStat(userId, fdid, 0, 0, 0, ""))
+        }
+    }
+
+    /**
      * get user starred stories
      * @param userId user id
      * @param pageSize page size of the starred stories
