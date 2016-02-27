@@ -22,6 +22,11 @@ WORKDIR /mining-solution/mining-play
 CMD bash /var/tmp/start.sh
 
 
+# sudo add-apt-repository ppa:webupd8team/java
+# sudo apt-get update
+# sudo apt-get install oracle-java8-installer
+
+
 
 #docker run -d -v /home/awang/workspace/mining-solution/mining-play:/mining-solution/mining-play:rw -p 9000:9000 zinking:mine
 #docker run -d -v /Users/awang/os/zhenw/mining-solution/mining-play:/mining-solution/mining-play:rw -p 9000:9000 zinking:mine

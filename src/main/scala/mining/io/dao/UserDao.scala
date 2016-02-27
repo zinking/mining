@@ -530,10 +530,14 @@ class UserDao() extends Dao {
     }
 
     def markUserReadFeed(uid: Long, feedId: Long): Unit = {
+        markUserReadFeedAt(uid, feedId, new Date())
+    }
+
+    def markUserReadFeedAt(uid: Long, feedId: Long, ts:Date): Unit = {
         val q = "update USER_STAT set START_FROM=? where user_id=? and feed_id = ? and story_id = 0"
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             using(connection.prepareStatement(q)) { statement =>
-                statement.setTimestamp(1,new Timestamp(new Date().getTime))
+                statement.setTimestamp(1,new Timestamp(ts.getTime))
                 statement.setLong(2,uid)
                 statement.setLong(3,feedId)
                 statement.executeUpdate()
@@ -610,6 +614,7 @@ class UserDao() extends Dao {
      * @return user feed read stats
      */
     def getUserFeedUnreadSummary(uid: Long): List[UserFeedReadStat] = {
+
       val q =
         """
           |SELECT
@@ -621,43 +626,47 @@ class UserDao() extends Dao {
           |FROM
           |((
           |SELECT -- get user subscribed feeds and its story count
-          |  F.FEED_ID,
-          |  COUNT(*) AS STORY_COUNT,
+          |  UU.FEED_ID,
+          |  COALESCE(COUNT(F.STORY_ID),0) AS STORY_COUNT, -- every feed will have story count even 0
           |  MAX(UU.START_FROM) AS START_FROM
           |FROM
-          |  FEED_STORY F
-          |  JOIN
-          |  USER_STAT UU
+          |  USER_STAT UU  -- for every feed in stats
+          |  LEFT JOIN
+          |  FEED_STORY F  -- find its story count
           |  ON
           |    F.FEED_ID = UU.FEED_ID AND
-          |    UU.STORY_ID = 0
+          |    F.PUBLISHED > UU.START_FROM  -- only count stories occur after lastRead
           |WHERE
-          |  F.PUBLISHED > UU.START_FROM AND
+          |  UU.STORY_ID = 0 AND
           |  UU.USER_ID = ?
           |GROUP BY
           |  F.FEED_ID
           |) TS
           |LEFT JOIN
-          |(SELECT
-          |  F.FEED_ID,
-          |  COUNT(*) AS READ_COUNT
+          |(
+          |SELECT -- get user read story count
+          |   U.FEED_ID,
+          |   COALESCE(COUNT(F.STORY_ID),0) AS READ_COUNT
+          |   -- U and UU will always join
           |FROM
+          |  USER_STAT U -- the feed
+          |  LEFT JOIN
+          |  USER_STAT UU -- the story
+          |  ON
+          |  	U.FEED_ID = UU.FEED_ID AND
+          |  	UU.HASREAD = 1
+          |  LEFT JOIN -- find the story date, it has to be published after the last read
           |  FEED_STORY F
-          |  JOIN
-          |  USER_STAT U
           |  ON
-          |    F.FEED_ID = U.FEED_ID AND
-          |    F.STORY_ID = U.STORY_ID
-          |  JOIN
-          |  USER_STAT UU
-          |  ON
-          |    F.FEED_ID = UU.FEED_ID AND
-          |    UU.STORY_ID = 0
+          |  	UU.FEED_ID = F.FEED_ID AND
+          |  	UU.STORY_ID = F.STORY_ID  AND
+          |  	F.PUBLISHED > U.START_FROM
           |WHERE
-          |  F.PUBLISHED > UU.START_FROM AND
+          |  U.STORY_ID = 0 AND
+          |  UU.STORY_ID <> 0 AND
           |  U.USER_ID = ?
           |GROUP BY
-          |	F.FEED_ID
+          |U.FEED_ID
           |) US
           |ON
           |  TS.FEED_ID = US.FEED_ID

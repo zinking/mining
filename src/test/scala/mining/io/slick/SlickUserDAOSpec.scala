@@ -1,14 +1,15 @@
 package mining.io.slick
 
-import mining.io.dao.UserDao
-import org.scalatest.FunSuite
-import org.scalatest.ShouldMatchers
-import org.scalatest.BeforeAndAfterAll
+import java.util.Date
+
+import mining.io.dao.{FeedDao, UserDao}
+import mining.io._
+import mining.util.DaoTestUtil
 import org.junit.runner.RunWith
+import org.scalatest.{BeforeAndAfterAll, FunSuite, ShouldMatchers}
 import org.scalatest.junit.JUnitRunner
-import mining.util.{DaoTestUtil, UrlUtil}
+
 import scala.xml.Elem
-import mining.io.{OpmlOutline, Opml, UserFactory, FeedTestPrepare}
 
 @RunWith(classOf[JUnitRunner])
 class SlickUserDAOSpec extends FunSuite
@@ -18,6 +19,7 @@ with FeedTestPrepare {
     val db = "test"
 
     val userDAO = UserDao()
+    val feedDAO = FeedDao()
 
     val userId = 2L
 
@@ -95,6 +97,62 @@ with FeedTestPrepare {
         val newOpml = userDAO.getUserOpml(userId).get
         newOpml.outlines.last.xmlUrl should not be(newFeedUrl)
         newOpml.outlines.length should be(outlineCount-1)
+    }
+
+    test("User should be albe to read his reading stats") {
+        val userUnreads = userDAO.getUserFeedUnreadSummary(userId)
+        userUnreads.size should be(0)
+        val nowts = new Date().getTime
+        val ts1 = new Date(nowts+10000000)
+        val ts2 = new Date(nowts+20000000)
+        val ts3 = new Date(nowts+30000000)
+        val ts4 = new Date(nowts+40000000)
+
+        val feed = Feed( // really serious test data
+            "http://mining.com/users/zinking/rss",
+            "user zinking's feed",
+            "way too far",
+            "http://mining.com/users/zinking",
+            "RSS",
+            0L,
+            "SOMEETAG",
+            ts1,
+            "http://mining.com/users/zinking/posts/1",
+            "UTF-8"
+        )
+        val createdFeed = feedDAO.insertOrUpdateFeed(feed)
+        val story1 = Story( 0L, createdFeed.feedId, "post1", "link1", ts1, ts1, "a1", "", "" )
+        val story2 = Story( 0L, createdFeed.feedId, "post2", "link2", ts2, ts2, "a2", "", "" )
+        val story3 = Story( 0L, createdFeed.feedId, "post3", "link3", ts3, ts3, "a3", "", "" )
+        val createdStory1 = feedDAO.insertFeedStory(createdFeed,story1)
+        val createdStory2 = feedDAO.insertFeedStory(createdFeed,story2)
+        val createdStory3 = feedDAO.insertFeedStory(createdFeed,story3)
+
+        //val userFeedStat = UserFeedReadStat(userId,createdFeed.feedId,0,ts1)
+        val userFeedStat = UserStat(userId,createdFeed.feedId,0L,0,0,"")
+        userDAO.insertUserStat(userFeedStat)
+
+        // all stories created but not read
+        val currentUnreads1 = userDAO.getUserFeedUnreadSummary(userId)
+        currentUnreads1.size should be(1)
+        val currentUnread = currentUnreads1.head
+        currentUnread.unreadCount should be(3)
+
+        // user read 1 story
+        val userFeedStat1 = UserStat(userId,createdFeed.feedId,createdStory1.id,1,0,"")
+        userDAO.insertUserStat(userFeedStat1)
+        val currentUnread2 = userDAO.getUserFeedUnreadSummary(userId).head
+        currentUnread2.unreadCount should be(2)
+
+        // user mark feed all read at ts1
+        userDAO.markUserReadFeedAt(userId, createdFeed.feedId, ts1)
+        val currentUnread3 = userDAO.getUserFeedUnreadSummary(userId).head
+        currentUnread3.unreadCount should be(2)
+
+        // user mark feed all read at ts3
+        userDAO.markUserReadFeedAt(userId, createdFeed.feedId, ts3)
+        val currentUnread4 = userDAO.getUserFeedUnreadSummary(userId).head
+        currentUnread4.unreadCount should be(0)
     }
 
 
