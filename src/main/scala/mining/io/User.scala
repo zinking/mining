@@ -3,7 +3,6 @@ package mining.io
 import java.util.Date
 
 import spray.json._
-import DefaultJsonProtocol._
 
 
 object UserProtocol extends DefaultJsonProtocol {
@@ -97,6 +96,27 @@ case class UserFollow
 
 object UserFactory {
     import UserProtocol._
-    def defaultPref = UserPref("asc","yes",true,true,true,false,"tiny",true)
+    def defaultPref = UserPref(
+        "asc","yes",
+        hideEmpty = true,
+        folderCose = true,
+        nav = true,
+        expand = false,
+        "tiny",
+        scrollRead = true
+    )
+
     def newUser(userId: Long, email: String) = User(userId, email, defaultPref.toJson.compactPrint)
+}
+
+case class UserActionStat
+(
+    timeStamp: Date,
+    action: String,
+    userId: Long,
+    feedId: Long,
+    storyId: Long,
+    content: String
+) {
+
 }

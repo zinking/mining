@@ -27,7 +27,6 @@ with FeedTestPrepare {
         DaoTestUtil.truncateAllTables
     }
 
-
     test("User info should be saved") {
         val user = UserFactory.newUser(userId, "sth@g.com")
         userDAO.saveUser(user)
@@ -97,6 +96,19 @@ with FeedTestPrepare {
         val newOpml = userDAO.getUserOpml(userId).get
         newOpml.outlines.last.xmlUrl should not be(newFeedUrl)
         newOpml.outlines.length should be(outlineCount-1)
+    }
+
+    test("User should be able to append his actions stats") {
+        val userActStats = List(
+            UserActionStat(new Date, "READ STORY", 1L, 10L, 100L, "DURATION,100"),
+            UserActionStat(new Date, "READ STORY", 1L, 10L, 100L, "DURATION,100"),
+            UserActionStat(new Date, "READ STORY", 1L, 10L, 100L, "DURATION,100")
+        )
+        userDAO.appendUserActStats(userActStats)
+
+        val stats = userDAO.getUserActStatsByUser(1L)
+
+        stats.size should be(3)
     }
 
     test("User should be albe to read his reading stats") {

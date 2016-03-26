@@ -49,10 +49,6 @@ class Spider {
                     .option(HttpOptions.readTimeout(5000))
                     .asString
 
-            if (response.code == 304) {
-                logger.info("parse nothing, as http304")
-                return (feed,EMPTY_RSS_FEED)
-            }
             if (response.code != 200) {
                 logger.info("parse error, with {}", response.code)
                 return (feed,EMPTY_RSS_FEED)
@@ -89,15 +85,14 @@ class Spider {
             }.getOrElse("UTF-8")
 
             val newChecked = new Date
-            val newEtag = response.headers.get("ETag").getOrElse("")
+            val newEtag = response.headers.getOrElse("ETag", "")
 
             if (!newEtag.isEmpty && newEtag==feed.lastEtag) {
                 logger.info("parse nothing, as etag didn't change {}", newEtag)
                 return (feed,EMPTY_RSS_FEED)
             }
             (feed.copy(checked = newChecked),response.body)
-        }
-        catch {
+        } catch {
             //FIXED: timeout, connection exception handling
             case ex: Throwable =>
                 logger.error(s"Spider parsing ${feed.xmlUrl} exception as $ex: ")

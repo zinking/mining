@@ -6,6 +6,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 import mining.io.dao.JdbcConnectionFactory
 
 /**
+ * Dao util tests
  * Created by awang on 5/12/15.
  */
 object DaoTestUtil {
@@ -13,7 +14,11 @@ object DaoTestUtil {
         val conf:Config = ConfigFactory.load
         val connection = JdbcConnectionFactory.getPooledConnection
 
-        val tables = List("FEED_SOURCE","FEED_STORY","USER_INFO","USER_OPML","USER_STORY","AUTH_USER", "USER_STAT", "USER_FOLLOW")
+        val tables = List(
+            "FEED_SOURCE","FEED_STORY","USER_INFO","USER_OPML", "USER_ACTION",
+            "USER_STORY","AUTH_USER", "USER_STAT", "USER_FOLLOW"
+        )
+
         try{
             val statement = connection.createStatement()
             connection.setAutoCommit(false)

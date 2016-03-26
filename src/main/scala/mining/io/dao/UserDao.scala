@@ -37,6 +37,17 @@ object UserDao {
         )
     }
 
+    def resultToUserActStat(rs:ResultSet):UserActionStat = {
+        UserActionStat(
+            new Date(rs.getTimestamp("TS").getTime),
+            rs.getString("ACT"),
+            rs.getLong("USER_ID"),
+            rs.getLong("FEED_ID"),
+            rs.getLong("STORY_ID"),
+            rs.getString("CONTENT")
+        )
+    }
+
     /**
      * convert database result to user story stats
      * @param rs database result set
@@ -346,6 +357,43 @@ class UserDao() extends Dao {
                 statement.setLong(4, fdid)
                 statement.executeUpdate()
             }
+        }
+    }
+    
+    def getUserActStatsByUser(userId: Long): List[UserActionStat] = {
+        val q = "select * from USER_ACTION ua where ua.user_id = ?"
+        val result = new util.ArrayList[UserActionStat]
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                statement.setLong(1, userId)
+                using(statement.executeQuery()) { rs =>
+                    while (rs.next) {
+                        val userAct = resultToUserActStat(rs)
+                        result.add(userAct)
+                    }
+                }
+            }
+        }
+        result.asScala.toList
+
+    }
+
+    def appendUserActStats(stats:List[UserActionStat]) = {
+        val q = "insert into USER_ACTION values(?, ?, ?, ?, ?, ?)"
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            connection.setAutoCommit(false)
+            using(connection.prepareStatement(q)) { statement =>
+                stats.foreach({stat=>
+                    statement.setTimestamp(1, new Timestamp(stat.timeStamp.getTime))
+                    statement.setString(2, stat.action)
+                    statement.setLong(3, stat.userId)
+                    statement.setLong(4, stat.feedId)
+                    statement.setLong(5, stat.storyId)
+                    statement.setString(6, stat.content)
+                    statement.executeUpdate()
+                })
+            }
+            connection.commit()
         }
     }
 
