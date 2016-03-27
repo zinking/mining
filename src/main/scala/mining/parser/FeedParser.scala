@@ -1,7 +1,9 @@
 package mining.parser
 
 import java.io.ByteArrayInputStream
-import java.io.StringReader
+import java.util.Date
+
+import mining.exception.{PageNotChangedException, ServerErrorException, ServerNotExistException, InvalidFeedException}
 
 import scala.collection.JavaConverters._
 
@@ -17,36 +19,67 @@ import mining.io.OpmlOutline
 import mining.io.Story
 import mining.io.StoryFactory
 
+import scala.concurrent.{ExecutionContext, Future}
+import ExecutionContext.Implicits.global
+import scala.util.{Failure, Success}
+
 class FeedParser(val feed: Feed) {
     private val logger = LoggerFactory.getLogger(classOf[FeedParser])
 
-
     val url = feed.xmlUrl
+    val spider = Spider()
 
-    /** Sync latest stories which are not in current feed */
-    def syncFeed(): Feed = {
-        val (newFeed, content) = Spider().syncFeedForContent(feed)
-        val newSyndFeed = syndFeedFromXML(content)
-
-        val parsedEntries = newSyndFeed.getEntries.asScala.map(_.asInstanceOf[SyndEntry])
-        val parsedStories = parsedEntries.map(StoryFactory.fromSyndFeed(_, feed))
-
-
-        if (newFeed.title.isEmpty) { //first time synced
-            val updatedFeed = newFeed.copy(
-                title = newSyndFeed.getTitle,
-                text  = newSyndFeed.getDescription,
-                htmlUrl = newSyndFeed.getLink,
-                feedType = newSyndFeed.getFeedType
-            )
-            updatedFeed.unsavedStories ++= parsedStories
-            updatedFeed
+    /**
+     * Sync latest stories which are not in current feed
+     * when calling sync feed, feed is always tried to be created
+     * but it could be the case the xmlUrl is not a valid url, or not a valid feed
+     * @return the feed if a valid one
+     */
+    def syncFeed(): Future[Feed] = {
+        spider.syncFeedForContent(feed) map { response =>
+            val content = spider.getResponseString(feed, response)
+            val newEncoding = spider.getEncoding(feed, response)
+            val newSyndFeed = syndFeedFromXML(content)
+            val parsedEntries = newSyndFeed.getEntries.asScala.map(_.asInstanceOf[SyndEntry])
+            val parsedStories = parsedEntries.map(StoryFactory.fromSyndFeed(_, feed))
+            val newChecked = new Date
+            if (feed.title.isEmpty) { //first time synced
+                val newFeed = feed.copy(
+                    title = newSyndFeed.getTitle,
+                    text  = newSyndFeed.getDescription,
+                    htmlUrl = newSyndFeed.getLink,
+                    feedType = newSyndFeed.getFeedType,
+                    encoding = newEncoding,
+                    checked = newChecked
+                )
+                newFeed.unsavedStories ++= parsedStories
+                newFeed
+            }
+            else {
+                val updatedFeed = feed.copy(
+                    encoding = newEncoding,
+                    checked = newChecked
+                )
+                updatedFeed.unsavedStories ++= parsedStories
+                updatedFeed
+            }
+        } recoverWith {
+            case ex:PageNotChangedException =>
+                Future.successful(
+                    feed.copy(
+                        visitCount = feed.visitCount+1,
+                        errorCount = feed.updateCount+1
+                    )
+                )
+            case ex: Throwable =>
+                //logger.error("recover feed parsing {} {}", url, ex.getMessage, ex)
+                Future.successful(
+                    feed.copy(
+                        visitCount = feed.visitCount+1,
+                        errorCount = feed.errorCount+1
+                    )
+                )
         }
-        else {
-            newFeed.unsavedStories ++= parsedStories
-            newFeed
-        }
-
     }
 
     /** Getting a Rome SyndFeed object from XML */
@@ -60,13 +93,13 @@ class FeedParser(val feed: Feed) {
         catch {
             //TODO:DOM exception for cynergysystems caused by the rss url has changed
             //TODO: SOME DOMAIN CANNOT BE SEEN WITHIN CHINA http://blogs.nitobi.com, these should be captured by spider
-            case ex: Throwable => logger.error(s"Parsing Exception for $url with $ex SKIPPING")
-                val dom = new SAXBuilder().build(new StringReader(Spider.EMPTY_RSS_FEED))
-                new SyndFeedInput().build(dom)
+            case ex: Throwable =>
+                logger.error(s"Parsing Exception {} as {} ", url, ex.getMessage, ex)
+                throw InvalidFeedException(url)
         }
     }
 
-    override def toString = s"Feed($url)"
+    override def toString = s"FeedParser($url)"
 }
 
 object FeedParser {

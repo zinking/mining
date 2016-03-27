@@ -18,7 +18,13 @@ case class Feed(xmlUrl: String,
                 lastEtag: String,
                 checked: Date,
                 lastUrl: String,
-                encoding: String) {
+                encoding: String,
+                visitCount: Long,
+                updateCount: Long,
+                refreshCount: Long,
+                refreshItemCount: Long,
+                errorCount: Long,
+                avgRefreshDuration: Long) {
     /** OPML outline for the feed */
 
     def getOpmlOutline: OpmlOutline = {
@@ -47,7 +53,10 @@ object FeedFactory {
    * @param url url of the feed
    * @return empty feed
    */
-    def newFeed(url: String) = new Feed(url,"","",url,"RSS", 0L, "", new Date, "", "UTF-8")
+    def newFeed(url: String) = new Feed(
+        url,"","",url,"RSS", 0L, "", new Date, "", "UTF-8",
+        0, 0, 0, 0, 0, 0
+    )
 
 
   /**
@@ -58,7 +67,7 @@ object FeedFactory {
             outline.xmlUrl, outline.title,
             outline.text, outline.htmlUrl,
             outline.outlineType, 0L, "",
-            new Date, "", "UTF-8"
+            new Date, "", "UTF-8", 0, 0, 0, 0, 0, 0
         )
     }
 

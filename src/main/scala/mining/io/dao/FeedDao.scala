@@ -37,7 +37,13 @@ object FeedDao {
             r.getString("LAST_ETAG"),
             new Date(r.getTimestamp("CHECKED").getTime),
             r.getString("LAST_URL"),
-            r.getString("ENCODING")
+            r.getString("ENCODING"),
+            r.getLong("VISIT_COUNT"),
+            r.getLong("UPDATE_COUNT"),
+            r.getLong("REFRESH_COUNT"),
+            r.getLong("REFRESH_ITEMCOUNT"),
+            r.getLong("ERROR_COUNT"),
+            r.getLong("AVG_REFRESH_DURATION")
         )
     }
 
@@ -119,45 +125,79 @@ with FeedReader {
      * @param url the url for the spider to fetch
      * @return option of the feed
      */
-    override def createOrUpdateFeed(url: String): Option[Feed] = {
+    override def createOrUpdateFeed(url: String): Future[Option[Feed]] = {
         loadFeedFromUrl(url) match {
             case None =>
                 val feed = FeedFactory.newFeed(url)
-                val newFeed = FeedParser(feed).syncFeed()
-                val newStories = newFeed.unsavedStories
-                log.info("parsed {} total stories",newFeed.unsavedStories.size)
-                val finalFeed = newFeed.copy(
-                    lastUrl = newStories.headOption.map(_.link).getOrElse(""),
-                    checked = new Date
-                )
-                finalFeed.unsavedStories ++= newStories
-                log.info("persisted {} new stories",newStories.size)
-                if (newStories.nonEmpty) {
-                    val feed = write(finalFeed)
-                    Some(feed)
-                }
-                else{
-                    None
+                val newFeedFuture = FeedParser(feed).syncFeed()
+                newFeedFuture.map{ newFeed =>
+                    // all stories aree new, as this is firstly insert
+                    val newStories = newFeed.unsavedStories
+                    log.info(
+                        "totally parsed {} stories, persisted {} new stories",
+                        newStories.size,
+                        newStories.size
+                    )
+
+                    if (newStories.nonEmpty) {
+                        val ffinalFeed = newFeed.copy(
+                            lastUrl = newStories.headOption.map(_.link).getOrElse(""),
+                            checked = new Date,
+                            visitCount = newFeed.visitCount+1,
+                            updateCount = newFeed.updateCount+1,
+                            refreshCount = newFeed.refreshCount+1,
+                            refreshItemCount = newFeed.refreshItemCount+newStories.size
+                        )
+                        ffinalFeed.unsavedStories ++= newStories
+                        val efeed = write(ffinalFeed)
+                        Some(efeed)
+                    }
+                    else{
+                        // nothing gets persist as it could be non valid feed stuff
+                        None
+                    }
+
                 }
 
             case Some(feed) =>
-                val newFeed = FeedParser(feed).syncFeed()
-                log.info("parsed {} total stories",newFeed.unsavedStories.size)
-                val newStories = getOnlyNewStories(newFeed.unsavedStories,feed.lastUrl)
-                newStories.headOption.map(_.link) match{
-                    case Some(newLastUrl) =>
-                        val finalFeed = newFeed.copy(lastUrl=newLastUrl,checked = new Date)
-                        finalFeed.unsavedStories.clear()
-                        finalFeed.unsavedStories ++= newStories
-                        log.info("persisted {} new stories",newStories.size)
-                        val feed = write(finalFeed)
-                        Some(feed)
-                    case None =>
-                        log.info("nothing to persist as nothing new")
-                        val finalFeed = newFeed.copy(checked = new Date)
-                        Some(finalFeed)
-                }
+                val feedFuture = FeedParser(feed).syncFeed()
+                feedFuture.map{ updatedFeed=>
+                    val newStories = getOnlyNewStories(updatedFeed.unsavedStories,feed.lastUrl)
+                    log.info(
+                        "totally parsed {} stories, persisted {} new stories",
+                        updatedFeed.unsavedStories.size,
+                        newStories.size
+                    )
+                    newStories.headOption.map(_.link) match{
+                        case Some(newLastUrl) =>
+                            //update average refresh duration
+                            val totalRefreshDuration = updatedFeed.avgRefreshDuration * updatedFeed.refreshCount
+                            val thisRefreshDuration = new Date().getTime - updatedFeed.checked.getTime
+                            val newAverage:Long = (totalRefreshDuration+thisRefreshDuration)/(updatedFeed.refreshCount+1)
 
+                            val finalFeed = updatedFeed.copy(
+                                lastUrl = newLastUrl,
+                                checked = new Date,
+                                visitCount = updatedFeed.visitCount+1,
+                                updateCount = updatedFeed.updateCount+1,
+                                refreshCount = updatedFeed.refreshCount+1,
+                                avgRefreshDuration = newAverage,
+                                refreshItemCount = updatedFeed.refreshItemCount+newStories.size
+                            )
+                            finalFeed.unsavedStories.clear()
+                            finalFeed.unsavedStories ++= newStories
+
+                            val efeed = write(finalFeed)
+                            Some(efeed)
+                        case None =>
+                            val finalFeed = updatedFeed.copy(
+                                checked = new Date,
+                                visitCount = updatedFeed.visitCount+1,
+                                updateCount = updatedFeed.updateCount+1
+                            )
+                            Some(finalFeed)
+                    }
+                }
         }
     }
 
@@ -238,7 +278,9 @@ with FeedReader {
         }
     }
     private def updateFeed(feed:Feed):Feed={
-        val q = s"update FEED_SOURCE set xml_url=?,last_etag=?,checked=?,last_url=?,encoding=? where feed_id = ${feed.feedId}"
+        val q = s"update FEED_SOURCE set xml_url=?,last_etag=?,checked=?,last_url=?,encoding=?,visit_count=?," +
+                s"update_count=?,refresh_count=?,error_count=?,avg_refresh_duration=?,refresh_itemcount=? " +
+                s"where feed_id = ${feed.feedId}"
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             using(connection.prepareStatement(q)) { statement =>
                 statement.setString(1, feed.xmlUrl)
@@ -246,6 +288,13 @@ with FeedReader {
                 statement.setTimestamp(3, new Timestamp(feed.checked.getTime))
                 statement.setString(4, feed.lastUrl)
                 statement.setString(5, feed.encoding)
+
+                statement.setLong(6, feed.visitCount)
+                statement.setLong(7, feed.updateCount)
+                statement.setLong(8, feed.refreshCount)
+                statement.setLong(9, feed.errorCount)
+                statement.setLong(10, feed.avgRefreshDuration)
+                statement.setLong(11, feed.refreshCount)
                 statement.executeUpdate()
             }
         }
@@ -253,7 +302,9 @@ with FeedReader {
     }
 
     private def insertFeed(feed:Feed):Feed={
-        val q = "INSERT INTO FEED_SOURCE (XML_URL,HTML_URL,TITLE,TEXT,FEED_TYPE,LAST_ETAG,CHECKED,LAST_URL,ENCODING) VALUES (?,?,?,?,?,?,?,?,?)"
+        val q = "INSERT INTO FEED_SOURCE (XML_URL,HTML_URL,TITLE,TEXT,FEED_TYPE,LAST_ETAG,CHECKED,LAST_URL,ENCODING," +
+                "VISIT_COUNT, UPDATE_COUNT,REFRESH_COUNT,ERROR_COUNT,AVG_REFRESH_DURATION,REFRESH_ITEMCOUNT" +
+                ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
         val result = new util.ArrayList[Feed]
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             using(connection.prepareStatement(q, Statement.RETURN_GENERATED_KEYS)) { statement =>
@@ -266,6 +317,13 @@ with FeedReader {
                 statement.setTimestamp(7, new Timestamp(feed.checked.getTime))
                 statement.setString(8, feed.lastUrl)
                 statement.setString(9, feed.encoding)
+
+                statement.setLong(10, feed.visitCount)
+                statement.setLong(11, feed.updateCount)
+                statement.setLong(12, feed.refreshCount)
+                statement.setLong(13, feed.errorCount)
+                statement.setLong(14, feed.avgRefreshDuration)
+                statement.setLong(15, feed.refreshCount)
                 statement.executeUpdate()
                 val newFeedIdRS = statement.getGeneratedKeys
                 if (newFeedIdRS.next) {

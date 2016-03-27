@@ -130,7 +130,7 @@ with FeedTestPrepare {
             "SOMEETAG",
             ts1,
             "http://mining.com/users/zinking/posts/1",
-            "UTF-8"
+            "UTF-8",0, 0, 0, 0, 0, 0
         )
         val createdFeed = feedDAO.insertOrUpdateFeed(feed)
         val story1 = Story( 0L, createdFeed.feedId, "post1", "link1", ts1, ts1, "a1", "", "" )

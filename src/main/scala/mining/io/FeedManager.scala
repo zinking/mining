@@ -22,16 +22,20 @@ trait FeedManager extends FeedReader with FeedWriter {
     def loadFeeds(): mutable.Map[String, Feed]
 
     /** Create a new feed if the UID of the URL doesn't exist. Sync and persist after that */
-    def createOrUpdateFeed(url: String): Option[Feed]
+    def createOrUpdateFeed(url: String): Future[Option[Feed]]
 
 
 
     /** Check all feeds in OPML file */
-    def createOrUpdateFeedOPML(opml: Opml):Future[Iterable[Feed]] = Future{
-        for {
-            feedsOpt <- for (url <- opml.allFeedsUrl) yield createOrUpdateFeed(url)
-            feeds <- feedsOpt
-        } yield feeds
+    def createOrUpdateFeedOPML(opml: Opml):Future[Iterable[Feed]] = {
+        //dada I am doing functional programming
+        val r1:List[Future[Option[Feed]]] = opml.allFeedsUrl.map{ url=>
+            createOrUpdateFeed(url)
+        }
+        val r2:Future[List[Option[Feed]]] = Future.sequence(r1)
+        r2.map{ rr=>
+            rr.flatten
+        }
     }
 }
 

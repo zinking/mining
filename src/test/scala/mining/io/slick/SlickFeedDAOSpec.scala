@@ -9,9 +9,11 @@ import org.scalatest.junit.JUnitRunner
 import mining.util.{DaoTestUtil, UrlUtil, DirectoryUtil}
 import java.util.Date
 import scala.collection.mutable
+import scala.concurrent.Await
 import scala.xml.XML
 import mining.io.{Story, Opml}
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 
 
 @RunWith(classOf[JUnitRunner])
@@ -31,8 +33,8 @@ with BeforeAndAfterAll {
 
     test("Save new feed to db should be able to get auto inc id") {
         //val feed0 = feedDAO.createOrGetFeedDescriptor(url0)
-        val feed1 = feedDAO.createOrUpdateFeed(url1)
-        val feed2 = feedDAO.createOrUpdateFeed(url2)
+        val feed1 = Await.result(feedDAO.createOrUpdateFeed(url1), 5 seconds)
+        val feed2 = Await.result(feedDAO.createOrUpdateFeed(url2), 5 seconds)
 
         feed1.get.feedId should be(1)
         feed2.get.feedId should be(2)
@@ -60,7 +62,7 @@ with BeforeAndAfterAll {
     }
 
     test("Create or update feed method should be able to sync and persist the feed/stories") {
-        val feed = feedDAO.createOrUpdateFeed(url2)
+        val feed = Await.result(feedDAO.createOrUpdateFeed(url2), 5 seconds)
         feed.get.unsavedStories.size should be(0)
         feed.get.checked should be > new Date(0)
         feed.get.lastUrl should not be ""
@@ -73,12 +75,23 @@ with BeforeAndAfterAll {
         val s1 = stories.head
         val s2 = stories.drop(8).head
         s1.link should not be s2.link
+
+        //stats need to be refreshed
+        feed.visitCount should be(1)
+        feed.refreshCount should be(1)
+        feed.refreshItemCount should be > 0L
+
+
     }
 
     test("parse a url second time won't duplicate stories") {
-        val feed2 = feedDAO.createOrUpdateFeed(url2).get
+        val feed2 = Await.result(feedDAO.createOrUpdateFeed(url2), 5 seconds).get
         val stories = feedDAO.getStoriesFromFeed(feed2)
         stories.size should be(10)
+
+        //stats need to be refreshed
+        feed2.visitCount should be(2)
+        feed2.refreshCount should be(1)
     }
 
     test("FeedManager should be able to parse opml format") {
@@ -92,7 +105,7 @@ with BeforeAndAfterAll {
     }
 
     test("Create or update feed method should be able to create correct outline") {
-        val feed = feedDAO.createOrUpdateFeed(url1)
+        val feed = Await.result(feedDAO.createOrUpdateFeed(url1), 5 seconds)
         feed.get.unsavedStories.size should be(0)
         feed.get.checked should be > new Date(0)
         feed.get.lastUrl should not be ""
