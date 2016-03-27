@@ -7,10 +7,8 @@ import org.scalatest.FunSuite
 import org.scalatest.ShouldMatchers
 import mining.io.FeedFactory
 import scala.concurrent.{Future, Await}
-import scala.util.Failure
 import scalaj.http.Http
 import scalaj.http.HttpResponse
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 

@@ -134,7 +134,7 @@ with FeedReader {
                     // all stories aree new, as this is firstly insert
                     val newStories = newFeed.unsavedStories
                     log.info(
-                        "totally parsed {} stories, persisted {} new stories",
+                        s"$url totally parsed {} stories, persisted {} new stories",
                         newStories.size,
                         newStories.size
                     )
@@ -164,7 +164,7 @@ with FeedReader {
                 feedFuture.map{ updatedFeed=>
                     val newStories = getOnlyNewStories(updatedFeed.unsavedStories,feed.lastUrl)
                     log.info(
-                        "totally parsed {} stories, persisted {} new stories",
+                        s"${feed.xmlUrl} totally parsed {} stories, persisted {} new stories",
                         updatedFeed.unsavedStories.size,
                         newStories.size
                     )
@@ -294,7 +294,7 @@ with FeedReader {
                 statement.setLong(8, feed.refreshCount)
                 statement.setLong(9, feed.errorCount)
                 statement.setLong(10, feed.avgRefreshDuration)
-                statement.setLong(11, feed.refreshCount)
+                statement.setLong(11, feed.refreshItemCount)
                 statement.executeUpdate()
             }
         }
@@ -323,7 +323,7 @@ with FeedReader {
                 statement.setLong(12, feed.refreshCount)
                 statement.setLong(13, feed.errorCount)
                 statement.setLong(14, feed.avgRefreshDuration)
-                statement.setLong(15, feed.refreshCount)
+                statement.setLong(15, feed.refreshItemCount)
                 statement.executeUpdate()
                 val newFeedIdRS = statement.getGeneratedKeys
                 if (newFeedIdRS.next) {

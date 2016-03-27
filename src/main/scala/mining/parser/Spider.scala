@@ -82,12 +82,12 @@ class Spider {
                       .asString
 
                 if (response.code == 404) {
-                    logger.error("404 request {}, {}, {}", url, response.headers, response.body)
+                    logger.error("404 request {}, {} {}", url, response.headers, response.contentType)
                     throw ServerNotExistException(url)
                 }
 
                 if (response.code != 200) {
-                    logger.error("error request {}, {}, {}", url, response.headers, response.body)
+                    logger.error("error request {}, {} {}", url, response.headers, response.contentType)
                     throw ServerErrorException(feed.xmlUrl)
                 }
 
