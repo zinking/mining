@@ -138,5 +138,9 @@ with BeforeAndAfterAll {
         stories2.size should be(0)
     }
 
+    test("get suggested feed to follow should return") {
+        val feeds = feedDAO.getSuggestedFeedsToFollow("coolsh")
+        feeds.length should be(1)
+    }
 
 }

@@ -20,6 +20,8 @@ import mining.io._
  * Created by awang on 5/12/15.
  */
 object UserDao {
+    val IdPrefix = "http://readmine.co/users?email="
+
     def apply() = {
         new UserDao()
     }
@@ -375,8 +377,27 @@ class UserDao() extends Dao {
             }
         }
         result.asScala.toList
-
     }
+
+    def getSuggestedUsersToFollow(query: String): List[String] = {
+        val q = "select EMAIL from USER_INFO ui where ui.email like ? limit 10"
+        val result = new util.ArrayList[String]
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                val queryPhrase = s"%$query%"
+                statement.setString(1, queryPhrase)
+                using(statement.executeQuery()) { rs =>
+                    while (rs.next) {
+                        val email = rs.getString(1)
+                        result.add(IdPrefix + email)
+                    }
+                }
+            }
+        }
+        result.asScala.toList
+    }
+
+
 
     def appendUserActStats(stats:List[UserActionStat]) = {
         val q = "insert into USER_ACTION values(?, ?, ?, ?, ?, ?)"

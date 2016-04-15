@@ -9,6 +9,7 @@ import org.junit.runner.RunWith
 import org.scalatest.{BeforeAndAfterAll, FunSuite, ShouldMatchers}
 import org.scalatest.junit.JUnitRunner
 
+
 import scala.xml.Elem
 
 @RunWith(classOf[JUnitRunner])
@@ -50,6 +51,12 @@ with FeedTestPrepare {
 
         val opml1: Opml = Opml(userId, dom)
         userDAO.setUserOpml(opml1)
+    }
+
+    test("get suggested user should return") {
+        val users = userDAO.getSuggestedUsersToFollow("sth")
+        users.length should be(1)
+        users.head.contains(UserDao.IdPrefix) should be(right = true)
     }
 
     test("User should be able to retrieve opml ") {

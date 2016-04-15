@@ -406,6 +406,25 @@ with FeedReader {
         }
     }
 
+    def getSuggestedFeedsToFollow(query: String): List[String] = {
+        val q = "select XML_URL from FEED_SOURCE fs where fs.XML_URL like ? or fs.TITLE like ? limit 10"
+        val result = new util.ArrayList[String]
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                val queryPhrase = s"%$query%"
+                statement.setString(1, queryPhrase)
+                statement.setString(2, queryPhrase)
+                using(statement.executeQuery()) { rs =>
+                    while (rs.next) {
+                        val url = rs.getString(1)
+                        result.add(url)
+                    }
+                }
+            }
+        }
+        result.asScala.toList
+    }
+
     def getStoryById(storyId: Long): Story = {
         val q = "select * from FEED_STORY where story_id=?"
         val result = new util.ArrayList[Story]
