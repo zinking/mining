@@ -67,7 +67,7 @@ with FeedManager
 with FeedWriter
 with FeedReader {
     import FeedDao._
-    override def log: Logger = LoggerFactory.getLogger(classOf[FeedDao])
+    override def logger: Logger = LoggerFactory.getLogger(classOf[FeedDao])
 
     /** get the descriptor from feed url */
     override def loadFeedFromUrl(url: String): Option[Feed] = {
@@ -117,7 +117,13 @@ with FeedReader {
     def getOnlyNewStories(parsedStories:mutable.ListBuffer[Story],lastUrl:String):mutable.ListBuffer[Story] = {
         //val sortedStories = parsedStories.sortBy(_.published)(Ordering[Date].reverse)
         //assumption is it's already reverse sorted
-        parsedStories.takeWhile(_.link != lastUrl)
+
+        //This becomes complex because some blog articles do have extremely long urls, which will be truncated
+        parsedStories.takeWhile{ s =>
+            val newLink = s.link
+            val len = Math.min(lastUrl.length,newLink.length)
+            newLink.substring(0,len) != lastUrl
+        }
     }
 
     /**
@@ -133,7 +139,7 @@ with FeedReader {
                 newFeedFuture.map{ newFeed =>
                     // all stories aree new, as this is firstly insert
                     val newStories = newFeed.unsavedStories
-                    log.info(
+                    logger.info(
                         s"$url totally parsed {} stories, persisted {} new stories",
                         newStories.size,
                         newStories.size
@@ -150,6 +156,7 @@ with FeedReader {
                         )
                         ffinalFeed.unsavedStories ++= newStories
                         val efeed = write(ffinalFeed)
+                        logger.info(efeed.getStatsString)
                         Some(efeed)
                     }
                     else{
@@ -163,7 +170,7 @@ with FeedReader {
                 val feedFuture = FeedParser(feed).syncFeed()
                 feedFuture.map{ updatedFeed=>
                     val newStories = getOnlyNewStories(updatedFeed.unsavedStories,feed.lastUrl)
-                    log.info(
+                    logger.info(
                         s"${feed.xmlUrl} totally parsed {} stories, persisted {} new stories",
                         updatedFeed.unsavedStories.size,
                         newStories.size
@@ -188,14 +195,16 @@ with FeedReader {
                             finalFeed.unsavedStories ++= newStories
 
                             val efeed = write(finalFeed)
+                            logger.info(efeed.getStatsString)
                             Some(efeed)
-                        case None =>
+                        case None => //this case includes the recovered error scenarios
                             val finalFeed = updatedFeed.copy(
                                 checked = new Date,
-                                visitCount = updatedFeed.visitCount+1,
-                                updateCount = updatedFeed.updateCount+1
+                                visitCount = updatedFeed.visitCount+1
                             )
-                            Some(finalFeed)
+                            val efeed = write(finalFeed)
+                            logger.info(efeed.getStatsString)
+                            Some(efeed)
                     }
                 }
         }

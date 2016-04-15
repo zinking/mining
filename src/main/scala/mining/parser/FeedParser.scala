@@ -68,6 +68,7 @@ class FeedParser(val feed: Feed) {
                 Future.successful(
                     feed.copy(
                         visitCount = feed.visitCount+1,
+                        avgRefreshDuration = feed.avgRefreshDuration+10,
                         errorCount = feed.updateCount+1
                     )
                 )
@@ -76,6 +77,7 @@ class FeedParser(val feed: Feed) {
                 Future.successful(
                     feed.copy(
                         visitCount = feed.visitCount+1,
+                        avgRefreshDuration = feed.avgRefreshDuration+10,
                         errorCount = feed.errorCount+1
                     )
                 )

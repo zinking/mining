@@ -47,13 +47,13 @@ object JdbcConnectionFactory{
 
 
 trait Dao{
-    def log: Logger
+    def logger: Logger
     def using[T <: { def close() }](resource: T)(block: T => Unit) {
         try {
             block(resource)
         } catch{
             case e:SQLException =>
-                log.error(e.getMessage,e)
+                logger.error(e.getMessage,e)
         } finally {
             resource.close()
         }

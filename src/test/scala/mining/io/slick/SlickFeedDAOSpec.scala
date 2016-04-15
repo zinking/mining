@@ -6,7 +6,7 @@ import org.scalatest.ShouldMatchers
 import org.scalatest.BeforeAndAfterAll
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import mining.util.{DaoTestUtil, UrlUtil, DirectoryUtil}
+import mining.util.{DaoTestUtil, DirectoryUtil}
 import java.util.Date
 import scala.collection.mutable
 import scala.concurrent.Await
@@ -77,7 +77,7 @@ with BeforeAndAfterAll {
         s1.link should not be s2.link
 
         //stats need to be refreshed
-        feed.visitCount should be(1)
+        feed.visitCount should be(2)
         feed.refreshCount should be(1)
         feed.refreshItemCount should be > 0L
 
@@ -90,7 +90,7 @@ with BeforeAndAfterAll {
         stories.size should be(10)
 
         //stats need to be refreshed
-        feed2.visitCount should be(2)
+        feed2.visitCount should be(3)
         feed2.refreshCount should be(1)
     }
 
@@ -125,4 +125,18 @@ with BeforeAndAfterAll {
         onlyNewStories.size should be(1)
         onlyNewStories.head.link should be(link1)
     }
+
+    test("some frake sites with extremely long url also should be handled") {
+        val url = "http://www.asyanyang.com/feed"
+        val feed = Await.result(feedDAO.createOrUpdateFeed(url), 5 seconds).get
+        val stories = feedDAO.getStoriesFromFeed(feed)
+        stories.size should be(10)
+
+        val feed2 = Await.result(feedDAO.createOrUpdateFeed(url), 5 seconds).get
+        val stories2 = feedDAO.getStoriesFromFeed(feed2, 10, 1)
+        // there shouldn't be any story on page 2
+        stories2.size should be(0)
+    }
+
+
 }

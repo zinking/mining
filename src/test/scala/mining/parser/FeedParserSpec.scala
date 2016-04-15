@@ -49,7 +49,9 @@ with ShouldMatchers {
     test("Parser return 0 if nothing returned or timeout") {
         val url = "http://great-way1.appspot.com/"
         val feedParser = FeedParser(FeedFactory.newFeed(url))
-        Await.result(feedParser.syncFeed(), 15 seconds) .unsavedStories.size should be(0)
+        val feed = Await.result(feedParser.syncFeed(), 15 seconds)
+        feed.unsavedStories.size should be(0)
+        feed.errorCount should be (1L)
     }
 
     test("Parse coolshell RSS should work well for Chinese") {

@@ -77,8 +77,8 @@ class Spider {
             try{
                 val response =
                     Http(feed.xmlUrl).headers(browsingHeaders)
-                      .option(HttpOptions.connTimeout(5500))
-                      .option(HttpOptions.readTimeout(5000))
+                      .option(HttpOptions.connTimeout(10000))
+                      .option(HttpOptions.readTimeout(20000))
                       .asString
 
                 if (response.code == 404) {
@@ -86,6 +86,7 @@ class Spider {
                     throw ServerNotExistException(url)
                 }
 
+                //304 not modified TODO:
                 if (response.code != 200) {
                     logger.error("error request {}, {} {}", url, response.headers, response.contentType)
                     throw ServerErrorException(feed.xmlUrl)

@@ -80,7 +80,7 @@ object UserDao {
 
 class UserDao() extends Dao {
     import UserDao._
-    override def log: Logger = LoggerFactory.getLogger(classOf[UserDao])
+    override def logger: Logger = LoggerFactory.getLogger(classOf[UserDao])
 
     /**
      * create user object in data store

@@ -44,6 +44,11 @@ case class Feed(xmlUrl: String,
     /** Unique id generated from the feed URL */
     def uid = UrlUtil.urlToUid(xmlUrl)
 
+    def getStatsString =
+    s"$xmlUrl visitCount:$visitCount, updateCount:$updateCount, " +
+    s"refreshCount:$refreshCount, errorCount:$errorCount, " +
+    s"avgRefreshDuration:$avgRefreshDuration refreshItemCount:$refreshItemCount"
+
     override def toString = s"FeedDescriptor[$xmlUrl]"
 }
 

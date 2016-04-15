@@ -40,7 +40,7 @@ object AuthUserDao {
 
 class AuthUserDao() extends Dao {
     import AuthUserDao._
-    override def log: Logger = LoggerFactory.getLogger(classOf[AuthUserDao])
+    override def logger: Logger = LoggerFactory.getLogger(classOf[AuthUserDao])
 
     def md5(s: String):String = {
         val digest = MessageDigest.getInstance("MD5")

@@ -14,7 +14,6 @@ trait FeedTestPrepare {
         if (!tmpFolder.exists()) tmpFolder.mkdir()
 
         ////A LITTLE DANGEROUS THOUGH
-        //TODO: we need to delete all the files produced instead of using this
         cleanUpFolder(tmpFolder)
 
         //feed manager directory
