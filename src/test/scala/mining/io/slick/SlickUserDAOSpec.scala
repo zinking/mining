@@ -92,7 +92,16 @@ with FeedTestPrepare {
         val opmlOutline = OpmlOutline(List.empty,"AddedOutline",newFeedUrl,"rss","addblog",newFeedUrl)
         userDAO.addOmplOutline(userId,opmlOutline)
         val newOpml = userDAO.getUserOpml(userId).get
+        newOpml.outlines(1).allOutlines.size should be(1)
         newOpml.outlines.last.xmlUrl should be(newFeedUrl)
+    }
+
+    test("User should be able to add opml outline with specified folder") {
+        val newFeedUrl = "http://addflex.mine.co"
+        val opmlOutline = OpmlOutline(List.empty,"AddedOutline",newFeedUrl,"rss","addblog",newFeedUrl)
+        userDAO.addOmplOutline(userId,opmlOutline, "FlexBlogs")
+        val newOpml = userDAO.getUserOpml(userId).get
+        newOpml.outlines(1).allOutlines.size should be(2)
     }
 
     test("User should be able to remove opml outline") {

@@ -567,14 +567,22 @@ class UserDao() extends Dao {
      * @param uid  user id
      * @param ol opml outline
      */
-    def addOmplOutline(uid: Long, ol: OpmlOutline): Unit = {
+    def addOmplOutline(uid: Long, ol: OpmlOutline, folder: String = ""): Unit = {
         getUserOpml(uid) match {
             case Some(uo) =>
-                if (!ol.xmlUrl.isEmpty) {
+                if (!ol.xmlUrl.isEmpty) { //validation, valid opmlOutlineItem
                     val curOpmlOutlines = uo.outlines.filter(_.xmlUrl == ol.xmlUrl)
-                    if (curOpmlOutlines.isEmpty) {
-                        val curopml = Opml(uid, uo.outlines :+ ol)
-                        updateUserOpml(curopml)
+                    if (curOpmlOutlines.isEmpty) { //if current ol doesn't exist yet
+                        if (folder.isEmpty) {
+                            //if the opml is not included in folder structure
+                            val curopml = Opml(uid, uo.outlines :+ ol)
+                            updateUserOpml(curopml)
+                        } else {
+                            val outlineFolder = OpmlOutline(List(ol),folder,folder,"","","")
+                            val deltaOpml = Opml(uid,List(outlineFolder))
+                            val newOpml = uo.mergeWith(deltaOpml)
+                            updateUserOpml(newOpml)
+                        }
                     }
                 }
             case None =>
