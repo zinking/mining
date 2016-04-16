@@ -92,6 +92,7 @@ class UserDao() extends Dao {
         val q = "INSERT INTO USER_INFO (user_id,email,pref) VALUES (?,?,?)"
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             using(connection.prepareStatement(q)) { statement =>
+                logger.debug(q)
                 statement.setLong(1, user.userId)
                 statement.setString(2, user.email)
                 statement.setString(3, user.prefData)
@@ -111,6 +112,7 @@ class UserDao() extends Dao {
         val q = "update USER_INFO set pref=? where user_id = ?"
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             using(connection.prepareStatement(q)) { statement =>
+                logger.debug(q)
                 statement.setString(1, user.prefData)
                 statement.setLong(2, user.userId)
                 statement.executeUpdate()
@@ -129,6 +131,7 @@ class UserDao() extends Dao {
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             using(connection.prepareStatement(q)) { statement =>
                 statement.setLong(1, uid)
+                logger.debug(q)
                 using(statement.executeQuery()) { rs =>
                     while (rs.next) {
                         val user = resultToUser(rs)
@@ -156,6 +159,7 @@ class UserDao() extends Dao {
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             using(connection.prepareStatement(q)) { statement =>
                 statement.setString(1, email)
+                logger.debug(q)
                 using(statement.executeQuery()) { rs =>
                     while (rs.next) {
                         val user = resultToUser(rs)
@@ -187,6 +191,7 @@ class UserDao() extends Dao {
                 statement.setLong(1, uid)
                 statement.setLong(2, sid)
                 statement.setLong(3, fdid)
+                logger.debug(q)
                 using(statement.executeQuery()) { rs =>
                     while (rs.next) {
                         val userStory = resultToUserStory(rs)
@@ -214,6 +219,7 @@ class UserDao() extends Dao {
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             using(connection.prepareStatement(q)) { statement =>
                 statement.setLong(1, userId)
+                logger.debug(q)
                 using(statement.executeQuery()) { rs =>
                     while (rs.next) {
                         result.add(rs.getLong(1))
@@ -235,6 +241,7 @@ class UserDao() extends Dao {
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             using(connection.prepareStatement(q)) { statement =>
                 statement.setLong(1, userId)
+                logger.debug(q)
                 using(statement.executeQuery()) { rs =>
                     while (rs.next) {
                         val user = resultToUser(rs)
@@ -258,6 +265,7 @@ class UserDao() extends Dao {
             using(connection.prepareStatement(q)) { statement =>
                 statement.setLong(1, uf.userId)
                 statement.setLong(2, uf.following)
+                logger.debug(q)
                 using(statement.executeQuery()) { rs =>
                     while (rs.next) {
                         val userFollowing = UserFollow(rs.getLong(1), rs.getLong(2))
@@ -284,6 +292,7 @@ class UserDao() extends Dao {
             using(connection.prepareStatement(q)) { statement =>
                 statement.setLong(1, uf.userId)
                 statement.setLong(2, uf.following)
+                logger.debug(q)
                 statement.executeUpdate()
             }
         }
@@ -311,6 +320,7 @@ class UserDao() extends Dao {
         val q = "INSERT INTO USER_STAT (user_id,story_id,hasread,haslike,comment,feed_id) VALUES (?,?,?,?,?,?)"
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             using(connection.prepareStatement(q)) { statement =>
+                logger.debug(q)
                 statement.setLong(1, us.userId)
                 statement.setLong(2, us.storyId)
                 statement.setInt(3, us.hasRead)
@@ -333,6 +343,7 @@ class UserDao() extends Dao {
         val q = "update USER_STAT set hasread=? where user_id=? and story_id=? and feed_id=?"
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             using(connection.prepareStatement(q)) { statement =>
+                logger.debug(q)
                 statement.setInt(1, hasRead)
                 statement.setLong(2, uid)
                 statement.setLong(3, sid)
@@ -353,6 +364,7 @@ class UserDao() extends Dao {
         val q = "update USER_STAT set haslike=? where user_id=? and story_id=? and feed_id=?"
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             using(connection.prepareStatement(q)) { statement =>
+                logger.debug(q)
                 statement.setInt(1, haslike)
                 statement.setLong(2, uid)
                 statement.setLong(3, sid)
@@ -368,6 +380,7 @@ class UserDao() extends Dao {
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             using(connection.prepareStatement(q)) { statement =>
                 statement.setLong(1, userId)
+                logger.debug(q)
                 using(statement.executeQuery()) { rs =>
                     while (rs.next) {
                         val userAct = resultToUserActStat(rs)
@@ -386,6 +399,7 @@ class UserDao() extends Dao {
             using(connection.prepareStatement(q)) { statement =>
                 val queryPhrase = s"%$query%"
                 statement.setString(1, queryPhrase)
+                logger.debug(q)
                 using(statement.executeQuery()) { rs =>
                     while (rs.next) {
                         val email = rs.getString(1)
@@ -404,6 +418,7 @@ class UserDao() extends Dao {
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             connection.setAutoCommit(false)
             using(connection.prepareStatement(q)) { statement =>
+                logger.debug(q)
                 stats.foreach({stat=>
                     statement.setTimestamp(1, new Timestamp(stat.timeStamp.getTime))
                     statement.setString(2, stat.action)
@@ -463,6 +478,7 @@ class UserDao() extends Dao {
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             using(connection.prepareStatement(q)) { statement =>
                 using(statement.executeQuery(q)) { rs =>
+                    logger.debug(q)
                     while (rs.next) {
                         val story = FeedDao.resultToStory(rs)
                         //story.copy(feedId = -userId)
@@ -486,6 +502,7 @@ class UserDao() extends Dao {
             using(connection.prepareStatement(q)) { statement =>
                 statement.setLong(1, uid)
                 using(statement.executeQuery()) { rs =>
+                    logger.debug(q)
                     while (rs.next) {
                         val userOpml = resultToOpml(rs)
                         result.add(userOpml)
@@ -510,6 +527,7 @@ class UserDao() extends Dao {
         val q = "INSERT INTO USER_OPML (user_id,raw) VALUES (?,?)"
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             using(connection.prepareStatement(q)) { statement =>
+                logger.debug(q)
                 statement.setLong(1, uos.id)
                 statement.setString(2, uos.raw)
                 statement.executeUpdate()
@@ -526,6 +544,7 @@ class UserDao() extends Dao {
         val q = "update USER_OPML set raw=? where user_id=?"
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             using(connection.prepareStatement(q)) { statement =>
+                logger.debug(q)
                 statement.setString(1, uos.raw)
                 statement.setLong(2, uos.id)
                 statement.executeUpdate()
@@ -614,6 +633,7 @@ class UserDao() extends Dao {
         val q = "update USER_STAT set START_FROM=? where user_id=? and feed_id = ? and story_id = 0"
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             using(connection.prepareStatement(q)) { statement =>
+                logger.debug(q)
                 statement.setTimestamp(1,new Timestamp(ts.getTime))
                 statement.setLong(2,uid)
                 statement.setLong(3,feedId)
@@ -631,6 +651,7 @@ class UserDao() extends Dao {
             val result = new util.ArrayList[Long]
             using(JdbcConnectionFactory.getPooledConnection) { connection =>
                 using(connection.prepareStatement(q)) { statement =>
+                    logger.debug(q)
                     statement.setLong(1, uid)
                     using(statement.executeQuery()) { rs =>
                         while (rs.next) {
@@ -673,6 +694,7 @@ class UserDao() extends Dao {
             using(JdbcConnectionFactory.getPooledConnection) { connection =>
                 using(connection.prepareStatement(q)) { statement =>
                     statement.setLong(1, uid)
+                    logger.debug(q)
                     using(statement.executeQuery()) { rs =>
                         while (rs.next) {
                             result.add(rs.getLong(1))
@@ -755,6 +777,7 @@ class UserDao() extends Dao {
             using(connection.prepareStatement(q)) { statement =>
                 statement.setLong(1, uid)
                 statement.setLong(2, uid)
+                logger.debug(q)
                 using(statement.executeQuery()) { rs =>
                     while (rs.next) {
                         //val startFromTS = Option(rs.getTimestamp(5)).getOrElse(0)

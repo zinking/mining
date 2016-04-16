@@ -4,11 +4,13 @@ import java.sql.{SQLException, Connection}
 
 import com.typesafe.config.{ConfigFactory, Config}
 import com.zaxxer.hikari.HikariDataSource
+import mining.util.EnvUtil
 import org.slf4j.{LoggerFactory, Logger}
 import scala.language.reflectiveCalls
 import scala.util.Properties
 
 /**
+ * Jdbc related factory method
  * Created by awang on 4/12/15.
  */
 class JdbcConnectionFactory
@@ -22,6 +24,8 @@ object JdbcConnectionFactory{
     val driver = config.getString("properties.driver")
     val user = config.getString("properties.user")
     val pass = config.getString("properties.pass")
+    val timeit = config.getBoolean("properties.timeit")
+
 
     logger.info("Starting up connection pool, using {} config",env)
 
@@ -48,9 +52,16 @@ object JdbcConnectionFactory{
 
 trait Dao{
     def logger: Logger
+    def timeit:Boolean =
+        JdbcConnectionFactory.timeit
+
     def using[T <: { def close() }](resource: T)(block: T => Unit) {
         try {
-            block(resource)
+            if (timeit) {
+                EnvUtil.time{block(resource)}
+            } else {
+                block(resource)
+            }
         } catch{
             case e:SQLException =>
                 logger.error(e.getMessage,e)

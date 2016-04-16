@@ -217,6 +217,7 @@ with FeedReader {
         using(JdbcConnectionFactory.getPooledConnection){connection=>
             using(connection.prepareStatement(q)) { statement =>
                 using(statement.executeQuery(q)) { rs =>
+                    logger.debug(q)
                     while (rs.next) {
                         val story = resultToStory(rs)
                         result.add(story)
@@ -235,6 +236,7 @@ with FeedReader {
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             using(connection.prepareStatement(q)) { statement =>
                 using(statement.executeQuery(q)) { rs =>
+                    logger.debug(q)
                     while (rs.next) {
                         val feed = resultToFeed(rs)
                         result.add(feed)
@@ -253,6 +255,7 @@ with FeedReader {
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             using(connection.prepareStatement(q)) { statement =>
                 using(statement.executeQuery(q)) { rs =>
+                    logger.debug(q)
                     while (rs.next) {
                         val feed = resultToFeed(rs)
                         result.add(feed)
@@ -292,6 +295,7 @@ with FeedReader {
                 s"where feed_id = ${feed.feedId}"
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             using(connection.prepareStatement(q)) { statement =>
+                logger.debug(q)
                 statement.setString(1, feed.xmlUrl)
                 statement.setString(2, feed.lastEtag)
                 statement.setTimestamp(3, new Timestamp(feed.checked.getTime))
@@ -317,6 +321,7 @@ with FeedReader {
         val result = new util.ArrayList[Feed]
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             using(connection.prepareStatement(q, Statement.RETURN_GENERATED_KEYS)) { statement =>
+                logger.debug(q)
                 statement.setString(1, feed.xmlUrl)
                 statement.setString(2, feed.htmlUrl)
                 statement.setString(3, feed.title)
@@ -351,6 +356,7 @@ with FeedReader {
         val result = new util.ArrayList[Story]
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             using(connection.prepareStatement(q, Statement.RETURN_GENERATED_KEYS)) { statement =>
+                logger.debug(q)
                 statement.setLong(1, feed.feedId)
                 statement.setString(2, story.title)
                 statement.setString(3, story.link)
@@ -411,6 +417,7 @@ with FeedReader {
         val result = new util.ArrayList[String]
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             using(connection.prepareStatement(q)) { statement =>
+                logger.debug(q)
                 val queryPhrase = s"%$query%"
                 statement.setString(1, queryPhrase)
                 statement.setString(2, queryPhrase)
@@ -430,6 +437,7 @@ with FeedReader {
         val result = new util.ArrayList[Story]
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             using(connection.prepareStatement(q)) { statement =>
+                logger.debug(q)
                 statement.setLong(1, storyId)
                 using(statement.executeQuery()) { rs =>
                     while (rs.next) {
@@ -447,6 +455,7 @@ with FeedReader {
         val result = new util.ArrayList[Story]
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             using(connection.prepareStatement(q)) { statement =>
+                logger.debug(q)
                 statement.setString(1, sl)
                 using(statement.executeQuery()) { rs =>
                     while (rs.next) {
