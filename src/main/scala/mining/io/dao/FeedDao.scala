@@ -4,7 +4,6 @@ import java.sql._
 
 import mining.io._
 import mining.parser.FeedParser
-import mining.util.UrlUtil
 import org.slf4j.{LoggerFactory, Logger}
 
 import scala.collection.mutable
@@ -89,7 +88,7 @@ with FeedReader {
 
     /** Get the descriptor from feed UID */
     override def loadFeedFromUid(uid: String): Option[Feed] = {
-        ???
+        null
     }
 
     /** Map from Feed UID to Feed Descriptor */
@@ -199,7 +198,7 @@ with FeedReader {
                             Some(efeed)
                         case None => //this case includes the recovered error scenarios
                             val finalFeed = updatedFeed.copy(
-                                checked = new Date,
+                                //checked = new Date,
                                 visitCount = updatedFeed.visitCount+1
                             )
                             val efeed = write(finalFeed)

@@ -2,7 +2,6 @@ package mining.io
 
 import java.util.Date
 import mining.util.UrlUtil
-import mining.parser.FeedParser
 import scala.collection.mutable
 
 /**
@@ -105,3 +104,31 @@ object FeedFactory {
     }
 }
 
+case class HistCounter(name: String, duration:Int) {
+    val postCounter:mutable.HashMap[Int,Int] = new mutable.HashMap[Int,Int]()
+    val readCounter:mutable.HashMap[Int,Int] = new mutable.HashMap[Int,Int]()
+    val likeCounter:mutable.HashMap[Int,Int] = new mutable.HashMap[Int,Int]()
+
+    (0 until duration+1).foreach{d=>
+        postCounter(d) = 0
+        readCounter(d) = 0
+        likeCounter(d) = 0
+    }
+
+    def incCounter(act: String, dt:Int) = {
+        act match {
+            case "Post" =>
+                postCounter(dt) += 1
+            case "Read" =>
+                readCounter(dt) += 1
+            case "Like" =>
+                likeCounter(dt) += 1
+        }
+    }
+}
+
+case class FeedReadStat(
+    feedId: Long, title: String, xmlUrl: String,
+    lastUpdate: Date, count: Int, totalCount: Int, percent: String,
+    ipd: Int, categroy: String
+)

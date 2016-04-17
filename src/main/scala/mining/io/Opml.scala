@@ -4,6 +4,7 @@ import scala.xml.Elem
 import scala.xml.Node
 import scala.xml.XML
 import scala.beans.BeanProperty
+import scala.language.postfixOps
 
 case class OpmlOutline(outlines: List[OpmlOutline],
                        title: String,

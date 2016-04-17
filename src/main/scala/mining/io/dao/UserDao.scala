@@ -2,12 +2,13 @@ package mining.io.dao
 
 import java.sql.{Timestamp, ResultSet}
 import java.util
-import java.util.Date
+import java.util.{Calendar, Date}
 
 
 import org.slf4j.{LoggerFactory, Logger}
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable
 
 import mining.io._
 
@@ -313,16 +314,18 @@ class UserDao() extends Dao {
      * @param us user stat
      */
     def insertUserStat(us:UserStat)={
-        val q = "INSERT INTO USER_STAT (user_id,story_id,hasread,haslike,comment,feed_id) VALUES (?,?,?,?,?,?)"
+        val q = "INSERT INTO USER_STAT (user_id,story_id,hasread,haslike,comment,feed_id,start_from) VALUES (?,?,?,?,?,?,?)"
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             using(connection.prepareStatement(q)) { statement =>
                 logger.debug(q)
+                val now = new Date()
                 statement.setLong(1, us.userId)
                 statement.setLong(2, us.storyId)
                 statement.setInt(3, us.hasRead)
                 statement.setInt(4, us.hasLike)
                 statement.setString(5, us.comment)
                 statement.setLong(6, us.feedId)
+                statement.setTimestamp(7, new Timestamp(now.getTime))
                 statement.executeUpdate()
             }
         }
@@ -713,8 +716,369 @@ class UserDao() extends Dao {
             }
             result.asScala.toList
         }
-
     }
+
+    def getUserInActiveFeedStats(uid: Long):List[FeedReadStat] = {
+        val q =
+            s"""
+               SELECT
+               |	UF.FEED_ID,FS.TITLE,FS.XML_URL, MIN(FDS.PUBLISHED) AS LAST_UPDATE
+               |FROM
+               |	USER_FEED UF
+               |	JOIN
+               |	FEED_SOURCE FS
+               |	ON UF.FEED_ID = FS.FEED_ID
+               |	JOIN
+               |	FEED_STORY FDS
+               |	ON UF.FEED_ID = FDS.FEED_ID
+               |WHERE
+               |	UF.USER_ID = ?
+               |GROUP BY
+               |	UF.FEED_ID, FS.TITLE,FS.XML_URL
+               |ORDER BY
+               |	LAST_UPDATE
+               |LIMIT 20
+         """.stripMargin
+
+        val result = new util.ArrayList[FeedReadStat]
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                logger.debug(q)
+                statement.setLong(1, uid)
+
+                using(statement.executeQuery()) { rs =>
+                    while (rs.next) {
+                        val ts = Option(rs.getTimestamp(4)) match {
+                            case Some(ts) => new Date(ts.getTime)
+                            case _ => new Date(0)
+                        }
+                        val readStats = FeedReadStat(
+                            rs.getLong(1),
+                            rs.getString(2),
+                            rs.getString(3),
+                            ts,
+                            0,
+                            0,
+                            "",
+                            0,
+                            "InActive"
+                        )
+                        result.add(readStats)
+                    }
+                }
+            }
+        }
+        result.asScala.toList
+    }
+
+    def getUserLastMonthActiveFeedStats(uid: Long):List[FeedReadStat] = {
+        val q =
+            s"""
+               |SELECT
+               |T.FEED_ID, T.TITLE, T.XML_URL, T.LAST_UPDATE, R.RCOUNT,T.TOTAL,
+               |concat(round((  R.RCOUNT/T.TOTAL * 100 ),2),'%') AS RPERCENT,
+               |ROUND(T.TOTAL/30) AS IPD
+               |FROM
+               |(
+               |SELECT
+               |	FS.FEED_ID, FS.TITLE, FS.XML_URL, FS.CHECKED AS LAST_UPDATE, COUNT(FDS.STORY_ID) AS TOTAL
+               |FROM
+               |	USER_FEED UF
+               |	JOIN
+               |	FEED_SOURCE FS
+               |	ON UF.FEED_ID = FS.FEED_ID
+               |	JOIN
+               |	FEED_STORY FDS
+               |	ON UF.FEED_ID = FDS.FEED_ID
+               |WHERE
+               |	UF.USER_ID = ? AND
+               |	FDS.PUBLISHED > DATE_SUB(now(), INTERVAL 30 DAY)
+               |GROUP BY
+               |	FS.FEED_ID, FS.TITLE, FS.XML_URL, FS.CHECKED
+               |) T
+               |JOIN
+               |(
+               |SELECT
+               |	US.FEED_ID, COUNT(US.STORY_ID) AS RCOUNT
+               |FROM
+               |	USER_FEED UF
+               |	JOIN
+               |	USER_STAT US
+               |	ON UF.USER_ID = US.USER_ID AND
+               |	   UF.FEED_ID = US.FEED_ID
+               |WHERE
+               |	UF.USER_ID = ? AND
+               |  US.HASREAD = 1 AND
+               |	US.START_FROM > DATE_SUB(now(), INTERVAL 30 DAY)
+               |GROUP BY
+               |	US.FEED_ID
+               |) R
+               |ON T.FEED_ID = R.FEED_ID
+               |ORDER BY IPD DESC
+               |LIMIT 20
+         """.stripMargin
+
+        val result = new util.ArrayList[FeedReadStat]
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                logger.debug(q)
+                statement.setLong(1, uid)
+                statement.setLong(2, uid)
+
+                using(statement.executeQuery()) { rs =>
+                    while (rs.next) {
+                        val readStats = FeedReadStat(
+                            rs.getLong(1),
+                            rs.getString(2),
+                            rs.getString(3),
+                            new Date(rs.getTimestamp(4).getTime),
+                            rs.getInt(5),
+                            rs.getInt(6),
+                            rs.getString(7),
+                            rs.getInt(8),
+                            "Active"
+                        )
+                        result.add(readStats)
+                    }
+                }
+            }
+        }
+        result.asScala.toList
+    }
+
+    def getUserLastMonthReadStats(uid: Long):List[FeedReadStat] = {
+        val q =
+            s"""
+               |SELECT
+               |T.FEED_ID, T.TITLE, T.XML_URL, T.LAST_UPDATE, R.RCOUNT,T.TOTAL,
+               |concat(round((  R.RCOUNT/T.TOTAL * 100 ),2),'%') AS RPERCENT,
+               |ROUND(T.TOTAL/30) AS IPD
+               |FROM
+               |(
+               |SELECT
+               |	FS.FEED_ID, FS.TITLE, FS.XML_URL, FS.CHECKED AS LAST_UPDATE, COUNT(FDS.STORY_ID) AS TOTAL
+               |FROM
+               |	USER_FEED UF
+               |	JOIN
+               |	FEED_SOURCE FS
+               |	ON UF.FEED_ID = FS.FEED_ID
+               |	JOIN
+               |	FEED_STORY FDS
+               |	ON UF.FEED_ID = FDS.FEED_ID
+               |WHERE
+               |	UF.USER_ID = ? AND
+               |	FDS.PUBLISHED > DATE_SUB(now(), INTERVAL 30 DAY)
+               |GROUP BY
+               |	FS.FEED_ID, FS.TITLE, FS.XML_URL, FS.CHECKED
+               |) T
+               |JOIN
+               |(
+               |SELECT
+               |	US.FEED_ID, COUNT(US.STORY_ID) AS RCOUNT
+               |FROM
+               |	USER_FEED UF
+               |	JOIN
+               |	USER_STAT US
+               |	ON UF.USER_ID = US.USER_ID AND
+               |	   UF.FEED_ID = US.FEED_ID
+               |WHERE
+               |	UF.USER_ID = ? AND
+               |  US.HASREAD = 1 AND
+               |	US.START_FROM > DATE_SUB(now(), INTERVAL 30 DAY)
+               |GROUP BY
+               |	US.FEED_ID
+               |) R
+               |ON T.FEED_ID = R.FEED_ID
+               |ORDER BY R.RCOUNT DESC
+               |LIMIT 20
+         """.stripMargin
+
+        val result = new util.ArrayList[FeedReadStat]
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                logger.debug(q)
+                statement.setLong(1, uid)
+                statement.setLong(2, uid)
+
+                using(statement.executeQuery()) { rs =>
+                    while (rs.next) {
+                        val readStats = FeedReadStat(
+                            rs.getLong(1),
+                            rs.getString(2),
+                            rs.getString(3),
+                            new Date(rs.getTimestamp(4).getTime),
+                            rs.getInt(5),
+                            rs.getInt(6),
+                            rs.getString(7),
+                            rs.getInt(8),
+                            "Read"
+                        )
+                        result.add(readStats)
+                    }
+                }
+            }
+        }
+        result.asScala.toList
+    }
+
+    def getUserLastMonthStarStats(uid: Long):List[FeedReadStat] = {
+        val q =
+            s"""
+               |SELECT
+               |T.FEED_ID, T.TITLE, T.XML_URL, T.LAST_UPDATE, R.RCOUNT,T.TOTAL,
+               |concat(round((  R.RCOUNT/T.TOTAL * 100 ),2),'%') AS RPERCENT,
+               |ROUND(T.TOTAL/30) AS IPD
+               |FROM
+               |(
+               |SELECT
+               |	FS.FEED_ID, FS.TITLE, FS.XML_URL, FS.CHECKED AS LAST_UPDATE, COUNT(FDS.STORY_ID) AS TOTAL
+               |FROM
+               |	USER_FEED UF
+               |	JOIN
+               |	FEED_SOURCE FS
+               |	ON UF.FEED_ID = FS.FEED_ID
+               |	JOIN
+               |	FEED_STORY FDS
+               |	ON UF.FEED_ID = FDS.FEED_ID
+               |WHERE
+               |	UF.USER_ID = ? AND
+               |	FDS.PUBLISHED > DATE_SUB(now(), INTERVAL 30 DAY)
+               |GROUP BY
+               |	FS.FEED_ID, FS.TITLE, FS.XML_URL, FS.CHECKED
+               |) T
+               |JOIN
+               |(
+               |SELECT
+               |	US.FEED_ID, COUNT(US.STORY_ID) AS RCOUNT
+               |FROM
+               |	USER_FEED UF
+               |	JOIN
+               |	USER_STAT US
+               |	ON UF.USER_ID = US.USER_ID AND
+               |	   UF.FEED_ID = US.FEED_ID
+               |WHERE
+               |	UF.USER_ID = ? AND
+               |  US.HASLIKE = 1 AND
+               |	US.START_FROM > DATE_SUB(now(), INTERVAL 30 DAY)
+               |GROUP BY
+               |	US.FEED_ID
+               |) R
+               |ON T.FEED_ID = R.FEED_ID
+               |ORDER BY R.RCOUNT DESC
+               |LIMIT 20
+         """.stripMargin
+
+        val result = new util.ArrayList[FeedReadStat]
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                logger.debug(q)
+                statement.setLong(1, uid)
+                statement.setLong(2, uid)
+
+                using(statement.executeQuery()) { rs =>
+                    while (rs.next) {
+                        val readStats = FeedReadStat(
+                            rs.getLong(1),
+                            rs.getString(2),
+                            rs.getString(3),
+                            new Date(rs.getTimestamp(4).getTime),
+                            rs.getInt(5),
+                            rs.getInt(6),
+                            rs.getString(7),
+                            rs.getInt(8),
+                            "STAR"
+                        )
+                        result.add(readStats)
+                    }
+                }
+            }
+        }
+        result.asScala.toList
+    }
+
+    def getUserLastMonthStatsHistograms(uid: Long):List[HistCounter] = {
+        val q =
+        s"""
+           |SELECT
+           |	'Read' AS ACT,
+           |	START_FROM AS TS
+           |FROM
+           |	USER_FEED UF
+           |	JOIN
+           |	USER_STAT US
+           |	ON
+           |	UF.USER_ID = US.USER_ID AND
+           |	UF.FEED_ID = US.FEED_ID
+           |WHERE
+           |	UF.USER_ID = ?
+           |	AND US.START_FROM > DATE_SUB(now(), INTERVAL 30 DAY)
+           |	AND US.HASREAD = 1
+           |UNION ALL
+           |SELECT
+           |	'Like' AS ACT,
+           |	START_FROM AS TS
+           |FROM
+           |	USER_FEED UF
+           |	JOIN
+           |	USER_STAT US
+           |	ON
+           |	UF.USER_ID = US.USER_ID AND
+           |	UF.FEED_ID = US.FEED_ID
+           |WHERE
+           |	UF.USER_ID = ?
+           |	AND US.START_FROM > DATE_SUB(now(), INTERVAL 30 DAY)
+           |	AND US.HASLIKE = 1
+           |UNION ALL
+           |SELECT
+           |	'Post' AS ACT,
+           |	US.PUBLISHED AS TS
+           |FROM
+           |	USER_FEED UF
+           |	JOIN
+           |	FEED_STORY US
+           |	ON
+           |	UF.FEED_ID = US.FEED_ID
+           |WHERE
+           |	UF.USER_ID = ?
+           |	AND US.PUBLISHED > DATE_SUB(now(), INTERVAL 30 DAY)
+         """.stripMargin
+
+        val result = new util.ArrayList[HistCounter]
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                logger.debug(q)
+                statement.setLong(1, uid)
+                statement.setLong(2, uid)
+                statement.setLong(3, uid)
+
+                val monthlyHist = HistCounter("monthly",31)
+                val weeklyHist = HistCounter("weekly",7)
+                val dailyHist = HistCounter("daily",24)
+
+                using(statement.executeQuery()) { rs =>
+                    while (rs.next) {
+                        val act = rs.getString(1)
+                        val ts = new Date(rs.getTimestamp(2).getTime)
+
+                        val cal = Calendar.getInstance()
+                        val d = cal.get(Calendar.DAY_OF_MONTH)
+                        val wd = cal.get(Calendar.DAY_OF_WEEK)
+                        val h = cal.get(Calendar.HOUR_OF_DAY)
+
+                        monthlyHist.incCounter(act, d)
+                        weeklyHist.incCounter(act, wd)
+                        dailyHist.incCounter(act, h)
+                    }
+
+                    result.add(monthlyHist)
+                    result.add(weeklyHist)
+                    result.add(dailyHist)
+                }
+            }
+        }
+        result.asScala.toList
+    }
+
     def getUserReadStories(uid: Long, storyIds: List[Long]): List[Long] = {
         if (storyIds.isEmpty) {
             List.empty
