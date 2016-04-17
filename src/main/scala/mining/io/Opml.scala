@@ -18,6 +18,8 @@ case class OpmlOutline(outlines: List[OpmlOutline],
         </outline>
     }
 
+    def isFolder:Boolean = outlines.nonEmpty
+
     def containsFeed(fd: Feed): Boolean =
         allFeedsUrl.contains(fd.xmlUrl)
 
@@ -66,6 +68,13 @@ object OpmlOutline {
         )
     }
 
+    def makeFolder(children: List[OpmlOutline], folderName:String) = {
+        new OpmlOutline(
+            children, folderName, "", "", folderName,""
+        )
+    }
+
+
     def apply(title: String, xmlUrl: String, outType: String, text: String, htmlUrl: String) = {
         new OpmlOutline(List[OpmlOutline](), title, xmlUrl, outType, text, htmlUrl)
     }
@@ -101,7 +110,7 @@ case class Opml(id: Long, outlines: List[OpmlOutline]) {
     def toXml: Elem = {
         <opml version="1.0">
             <head>
-                <title> {id} 's subscription</title>
+                <title> user {id} 's subscription</title>
             </head>
             <body>
                 {for {o <- outlines}
@@ -155,3 +164,5 @@ object Opml {
         new Opml(id, result)
     }
 }
+
+case class OpmlChange(xmlUrl:String, folder:String, title:String, delete:Boolean)

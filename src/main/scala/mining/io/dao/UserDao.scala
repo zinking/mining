@@ -1,16 +1,12 @@
 package mining.io.dao
 
-import java.io.{PrintWriter, File}
-import java.sql.{SQLException, Timestamp, ResultSet, Connection}
+import java.sql.{Timestamp, ResultSet}
 import java.util
 import java.util.Date
 
-import com.typesafe.config.{ConfigFactory, Config}
 
 import org.slf4j.{LoggerFactory, Logger}
 
-import scala.io.Source
-import scala.xml.XML
 import scala.collection.JavaConverters._
 
 import mining.io._
@@ -607,6 +603,61 @@ class UserDao() extends Dao {
             case None =>
                 val newopml = Opml(uid, List(ol))
                 insertUserOmpl(newopml)
+        }
+    }
+
+    /**
+     * apply a series of opml changes on user's opml
+     * @param uid user id
+     * @param opmlChanges the opml changes
+     */
+    def applyOpmlChanges(uid: Long, opmlChanges: List[OpmlChange]): Unit = {
+        getUserOpml(uid) match {
+            case Some(uo) =>
+                val xmUrl2ChangeMap = opmlChanges.map{change=>
+                    (change.xmlUrl,change)
+                }.toMap
+
+                //uo.opml => xml -> outline, folder
+                val outlineAndFolderList = uo.outlines.flatMap{opmlFeed=>
+                    if (opmlFeed.isFolder) {
+                        opmlFeed.outlines.map{ feed=>
+                            //(feed.xmlUrl, (feed, opmlFeed.title))
+                            (feed, opmlFeed.title)
+                        }
+                    } else {
+                        List(
+                            //(opmlFeed.xmlUrl, (opmlFeed,""))
+                            (opmlFeed,"")
+                        )
+                    }
+                }
+
+                //filter those that have marked as deleted
+                val remainings = outlineAndFolderList.filter{case(outline,folder)=>
+                    xmUrl2ChangeMap.get(outline.xmlUrl) match {
+                        case Some(change) => !change.delete
+                        case _ => true
+                    }
+                }
+
+                //apply title and folder changes
+                val result:List[(OpmlOutline,String)] = remainings.map{case(outline,folder)=>
+                    xmUrl2ChangeMap.get(outline.xmlUrl) match {
+                        case Some(change) => (outline.copy(title = change.title),change.folder)
+                        case _ => (outline,folder)
+                    }
+                }
+
+                val allFolders:List[OpmlOutline] = result.groupBy(_._2).map{case(folder,oaf) =>
+                    val opmlOutlines = oaf.map(_._1)
+                    val folderOpml = OpmlOutline.makeFolder(opmlOutlines,folder)
+                    folderOpml
+                }.toList
+
+                val uo2 = new Opml(uid, allFolders)
+                updateUserOpml(uo2)
+            case _ =>
         }
     }
 

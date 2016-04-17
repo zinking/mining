@@ -28,6 +28,17 @@ with FeedTestPrepare {
         DaoTestUtil.truncateAllTables
     }
 
+    def opml2FolderMap(uo:Opml):Map[String,OpmlOutline] = {
+        uo.outlines.map{opmlFeed=>
+            if (opmlFeed.isFolder) {
+                (opmlFeed.title, opmlFeed)
+            } else {
+                ("",opmlFeed)
+            }
+        }.toMap
+
+    }
+
     test("User info should be saved") {
         val user = UserFactory.newUser(userId, "sth@g.com")
         userDAO.saveUser(user)
@@ -80,6 +91,16 @@ with FeedTestPrepare {
                         <outline text="AdobeAll-Bee" title="AdobeAll-Bee" type="rss"
                                  xmlUrl="http://www.beedigital.net/blog/?feed=rss2" htmlUrl="http://www.beedigital.net/blog"/>
                     </outline>
+
+                    <outline title="d1" text="d1">
+                        <outline text="f1" title="f1" type="rss" xmlUrl="http://f1" htmlUrl="http://f1"/>
+                        <outline text="f2" title="f2" type="rss" xmlUrl="http://f2" htmlUrl="http://f2"/>
+                        <outline text="f5" title="f5" type="rss" xmlUrl="http://f5" htmlUrl="http://f5"/>
+                    </outline>
+
+                    <outline title="d2" text="d2">
+                        <outline text="f3" title="f3" type="rss" xmlUrl="http://f3" htmlUrl="http://f3"/>
+                    </outline>
                 </body>
             </opml>
         val opml2: Opml = Opml(userId, dom)
@@ -101,7 +122,9 @@ with FeedTestPrepare {
         val opmlOutline = OpmlOutline(List.empty,"AddedOutline",newFeedUrl,"rss","addblog",newFeedUrl)
         userDAO.addOmplOutline(userId,opmlOutline, "FlexBlogs")
         val newOpml = userDAO.getUserOpml(userId).get
-        newOpml.outlines(1).allOutlines.size should be(2)
+
+        val f2O = opml2FolderMap(newOpml)
+        f2O.get("FlexBlogs").get.outlines.size should be(2)
     }
 
     test("User should be able to remove opml outline") {
@@ -112,6 +135,19 @@ with FeedTestPrepare {
         val newOpml = userDAO.getUserOpml(userId).get
         newOpml.outlines.last.xmlUrl should not be(newFeedUrl)
         newOpml.outlines.length should be(outlineCount-1)
+    }
+
+    test("User should be albe to apply a sequence of changes to opml") {
+        val changes:List[OpmlChange] = List(
+            OpmlChange("http://f5","NA","NA",true),
+            OpmlChange("http://f2","d2","NA",false),
+            OpmlChange("http://f3","d2","f3rename",false)
+        )
+        userDAO.applyOpmlChanges(userId,changes)
+        val newOpml = userDAO.getUserOpml(userId).get
+        val f2O = opml2FolderMap(newOpml)
+        f2O.get("d1").get.outlines.size should be(1)
+        f2O.get("d2").get.outlines.size should be(2)
     }
 
     test("User should be able to append his actions stats") {
