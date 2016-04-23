@@ -1,5 +1,6 @@
 package mining.io.slick
 
+import java.text.SimpleDateFormat
 import java.util.Date
 
 import mining.io.dao.{FeedDao, UserDao}
@@ -217,6 +218,40 @@ with FeedTestPrepare {
         userDAO.markUserReadFeedAt(userId, createdFeed.feedId, ts3)
         val currentUnread4 = userDAO.getUserFeedUnreadSummary(userId).head
         currentUnread4.unreadCount should be(0)
+    }
+
+    test("aggregate action date to hist") {
+        val formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+
+        val dt1 = formatter.parse("2016-04-23 10:50:50")
+        val dt2 = formatter.parse("2016-04-22 8:50:50")
+        val dt3 = formatter.parse("2016-03-22 10:50:50")
+
+
+
+        val actionDates = List(
+            ("Post",dt1),
+            ("Post",dt2),
+            ("Post",dt3),
+            ("Read",dt1),
+            ("Read",dt2),
+            ("Read",dt3),
+            ("Like",dt1),
+            ("Like",dt2)
+        )
+
+        val hists = userDAO.aggregateToHistCounter(actionDates)
+        val monthly = hists(0)
+        val weekly = hists(1)
+        val daily = hists(2)
+        monthly.postCounter.get(22).get should be(2)
+        monthly.postCounter.get(23).get should be(1)
+
+        weekly.postCounter.get(6).get should be(1) //sat is 6
+
+        daily.postCounter.get(8).get should be(1)
+        daily.postCounter.get(10).get should be(2)
+
     }
 
 

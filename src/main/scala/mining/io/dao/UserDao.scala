@@ -776,7 +776,7 @@ class UserDao() extends Dao {
             s"""
                |SELECT
                |T.FEED_ID, T.TITLE, T.XML_URL, T.LAST_UPDATE, R.RCOUNT,T.TOTAL,
-               |concat(round((  R.RCOUNT/T.TOTAL * 100 ),2),'%') AS RPERCENT,
+               |concat(round((  R.RCOUNT/T.TOTAL * 100 ),0),'%') AS RPERCENT,
                |ROUND(T.TOTAL/30) AS IPD
                |FROM
                |(
@@ -851,7 +851,7 @@ class UserDao() extends Dao {
             s"""
                |SELECT
                |T.FEED_ID, T.TITLE, T.XML_URL, T.LAST_UPDATE, R.RCOUNT,T.TOTAL,
-               |concat(round((  R.RCOUNT/T.TOTAL * 100 ),2),'%') AS RPERCENT,
+               |concat(round((  R.RCOUNT/T.TOTAL * 100 ),0),'%') AS RPERCENT,
                |ROUND(T.TOTAL/30) AS IPD
                |FROM
                |(
@@ -926,7 +926,7 @@ class UserDao() extends Dao {
             s"""
                |SELECT
                |T.FEED_ID, T.TITLE, T.XML_URL, T.LAST_UPDATE, R.RCOUNT,T.TOTAL,
-               |concat(round((  R.RCOUNT/T.TOTAL * 100 ),2),'%') AS RPERCENT,
+               |concat(round((  R.RCOUNT/T.TOTAL * 100 ),0),'%') AS RPERCENT,
                |ROUND(T.TOTAL/30) AS IPD
                |FROM
                |(
@@ -1043,40 +1043,41 @@ class UserDao() extends Dao {
            |	AND US.PUBLISHED > DATE_SUB(now(), INTERVAL 30 DAY)
          """.stripMargin
 
-        val result = new util.ArrayList[HistCounter]
+        val actionDates = new util.ArrayList[(String,Date)]()
         using(JdbcConnectionFactory.getPooledConnection) { connection =>
             using(connection.prepareStatement(q)) { statement =>
                 logger.debug(q)
                 statement.setLong(1, uid)
                 statement.setLong(2, uid)
                 statement.setLong(3, uid)
-
-                val monthlyHist = HistCounter("monthly",31)
-                val weeklyHist = HistCounter("weekly",7)
-                val dailyHist = HistCounter("daily",24)
-
                 using(statement.executeQuery()) { rs =>
                     while (rs.next) {
                         val act = rs.getString(1)
                         val ts = new Date(rs.getTimestamp(2).getTime)
-
-                        val cal = Calendar.getInstance()
-                        val d = cal.get(Calendar.DAY_OF_MONTH)
-                        val wd = cal.get(Calendar.DAY_OF_WEEK)
-                        val h = cal.get(Calendar.HOUR_OF_DAY)
-
-                        monthlyHist.incCounter(act, d)
-                        weeklyHist.incCounter(act, wd)
-                        dailyHist.incCounter(act, h)
+                        actionDates.add((act,ts))
                     }
-
-                    result.add(monthlyHist)
-                    result.add(weeklyHist)
-                    result.add(dailyHist)
                 }
             }
         }
-        result.asScala.toList
+        aggregateToHistCounter(actionDates.asScala.toList)
+    }
+
+    def aggregateToHistCounter(actionDates :List[(String,Date)]): List[HistCounter] = {
+        val monthlyHist = HistCounter("monthly",31)
+        val weeklyHist = HistCounter("weekly",7)
+        val dailyHist = HistCounter("daily",24)
+        val cal = Calendar.getInstance()
+        actionDates.foreach{case(act,ts)=>
+            cal.setTime(ts)
+            val d = cal.get(Calendar.DAY_OF_MONTH)
+            val wd = cal.get(Calendar.DAY_OF_WEEK)
+            val h = cal.get(Calendar.HOUR_OF_DAY)
+
+            monthlyHist.incCounter(act, d)
+            weeklyHist.incCounter(act, wd)
+            dailyHist.incCounter(act, h)
+        }
+        List(monthlyHist, weeklyHist, dailyHist)
     }
 
     def getUserReadStories(uid: Long, storyIds: List[Long]): List[Long] = {
