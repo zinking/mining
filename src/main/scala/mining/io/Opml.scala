@@ -148,6 +148,26 @@ case class Opml(id: Long, outlines: List[OpmlOutline]) {
         this.copy(outlines=combined.toList)
     }
 
+    /**
+     * return an opml with specified outline filtered
+     * @param xmlUrl the outline with xml url
+     * @return the filtered opml
+     */
+    def removeOutline(xmlUrl: String): Opml = {
+        //first filter at folder level if any
+        val l1 = outlines.filter(!_.xmlUrl.startsWith(xmlUrl))
+        //then filter at feed level if any
+        val l2 = l1.map{o=>
+            if (o.isFolder) {
+                val o1 = o.outlines.filter(!_.xmlUrl.startsWith(xmlUrl))
+                OpmlOutline(o1, o.title, o.xmlUrl, o.outlineType, o.text, o.htmlUrl)
+            } else {
+                o
+            }
+        }
+        Opml(id,l2)
+    }
+
 }
 
 object Opml {

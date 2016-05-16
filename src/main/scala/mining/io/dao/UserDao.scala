@@ -489,6 +489,77 @@ class UserDao() extends Dao {
         result.asScala.toList
     }
 
+    def getUserFeed(userId: Long, feedId: Long): Option[Long]= {
+        val q = "select USER_ID,FEED_ID from USER_FEED where user_id = ? AND FEED_ID = ?"
+        val result = new util.ArrayList[Long]
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                statement.setLong(1, userId)
+                statement.setLong(2, feedId)
+                using(statement.executeQuery()) { rs =>
+                    logger.debug(q)
+                    while (rs.next) {
+                        result.add(rs.getLong(2))
+                    }
+                }
+            }
+        }
+        if (result.size() > 0) {
+            Some(result.get(0))
+        }
+        else {
+            None
+        }
+    }
+
+    /**
+     * update the user opml object, create if absent
+     * @param userId user id
+     * @param feedId feed id
+     */
+    def setUserFeed(userId: Long, feedId: Long): Unit = {
+        getUserFeed(userId, feedId) match {
+            case None => insertUserFeed(userId, feedId)
+            case Some(uoo) =>
+
+        }
+    }
+
+    /**
+     * create a record to indicate user subscribed a feed
+     * @param userId the user
+     * @param feedId the feed
+     */
+    def insertUserFeed(userId: Long, feedId:Long) = {
+        val q = "INSERT INTO USER_FEED (user_id,feed_id) VALUES (?,?)"
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                logger.debug(q)
+                statement.setLong(1, userId)
+                statement.setLong(2, feedId)
+                statement.executeUpdate()
+            }
+        }
+    }
+
+
+    /**
+     * remove the record if user unsubscribed a feed
+     * @param userId the user
+     * @param feedId the feed
+     */
+    def removeUserFeed(userId:Long, feedId:Long) = {
+        val q = "DELETE FROM USER_FEED WHERE USER_ID = ? AND FEED_ID = ?"
+        using(JdbcConnectionFactory.getPooledConnection) { connection =>
+            using(connection.prepareStatement(q)) { statement =>
+                logger.debug(q)
+                statement.setLong(1, userId)
+                statement.setLong(2, feedId)
+                statement.executeUpdate()
+            }
+        }
+    }
+
     /**
      * get the user opml object
      * @param uid user id
@@ -672,8 +743,9 @@ class UserDao() extends Dao {
     def removeOmplOutline(uid: Long, xmlUrl: String): Unit = {
         getUserOpml(uid) match {
             case Some(uo) =>
-                val newOpmlOutlines = uo.outlines.filter(!_.xmlUrl.startsWith(xmlUrl))
-                val curopml = Opml(uid, newOpmlOutlines)
+                //val newOpmlOutlines = uo.outlines.filter(!_.xmlUrl.startsWith(xmlUrl))
+                //val curopml = Opml(uid, newOpmlOutlines)
+                val curopml = uo.removeOutline(xmlUrl)
                 updateUserOpml(curopml)
             case _ =>
         }
@@ -1186,6 +1258,8 @@ class UserDao() extends Dao {
           |ON
           |  TS.FEED_ID = US.FEED_ID
           |)
+          |WHERE
+          |TS.FEED_ID IN (SELECT FEED_ID FROM USER_FEED WHERE USER_ID = ?)
         """.stripMargin
 
         val result = new util.ArrayList[UserFeedReadStat]
@@ -1193,6 +1267,7 @@ class UserDao() extends Dao {
             using(connection.prepareStatement(q)) { statement =>
                 statement.setLong(1, uid)
                 statement.setLong(2, uid)
+                statement.setLong(3, uid)
                 logger.debug(q)
                 using(statement.executeQuery()) { rs =>
                     while (rs.next) {
